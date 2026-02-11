@@ -77,6 +77,16 @@ export default function TemplatesIndex({ templates }: TemplatesIndexProps) {
       <Head title="Pass Templates" />
 
       <div className="space-y-6">
+        {templates.data.length > 0 && (
+          <div className="flex justify-end">
+            <Button asChild>
+              <Link href={templatesRoute.create().url}>
+                <Plus className="mr-2 h-4 w-4" />
+                Create Template
+              </Link>
+            </Button>
+          </div>
+        )}
         {templates.data.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12 text-center">

@@ -56,8 +56,21 @@ class PassController extends Controller
      */
     public function store(StorePassRequest $request)
     {
+        $validated = $request->validated();
+
+        if (! empty($validated['pass_template_id'])) {
+            $template = $request->user()->passTemplates()->findOrFail($validated['pass_template_id']);
+            $rawInput = json_decode($request->getContent(), true);
+            $rawPassData = is_array($rawInput['pass_data'] ?? null) ? $rawInput['pass_data'] : [];
+            $validated['pass_data'] = $this->applyTemplateDefaults(
+                (array) $template->design_data,
+                (array) ($validated['pass_data'] ?? []),
+                $rawPassData,
+            );
+        }
+
         $pass = $request->user()->passes()->create([
-            ...$request->validated(),
+            ...$validated,
             'serial_number' => \Illuminate\Support\Str::uuid()->toString(),
             'status' => 'active',
         ]);
@@ -116,5 +129,39 @@ class PassController extends Controller
         $pass->delete();
 
         return to_route('passes.index')->with('success', 'Pass deleted successfully.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $defaults
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
+     */
+    protected function applyTemplateDefaults(array $defaults, array $overrides, array $rawOverrides = []): array
+    {
+        $merged = $defaults;
+
+        foreach ($overrides as $key => $value) {
+            if ($value === null && array_key_exists($key, $rawOverrides) && $rawOverrides[$key] === '') {
+                $merged[$key] = '';
+                continue;
+            }
+
+            if ($value === null) {
+                continue;
+            }
+
+            if (is_array($value) && ! array_is_list($value)) {
+                $merged[$key] = $this->applyTemplateDefaults(
+                    (array) ($defaults[$key] ?? []),
+                    $value,
+                    is_array($rawOverrides[$key] ?? null) ? $rawOverrides[$key] : [],
+                );
+                continue;
+            }
+
+            $merged[$key] = $value;
+        }
+
+        return $merged;
     }
 }

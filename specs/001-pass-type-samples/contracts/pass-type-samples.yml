@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: Pass Type Samples & Media Library API
+  version: 1.0.0
+paths:
+  /samples:
+    get:
+      summary: List pass type samples
+      parameters:
+        - in: query
+          name: pass_type
+          schema:
+            type: string
+        - in: query
+          name: platform
+          schema:
+            type: string
+            enum: [apple, google]
+        - in: query
+          name: source
+          schema:
+            type: string
+            enum: [system, user, all]
+            default: all
+      responses:
+        "200":
+          description: Samples list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PassTypeSample"
+    post:
+      summary: Create a user sample
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PassTypeSampleCreate"
+      responses:
+        "201":
+          description: Sample created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassTypeSample"
+  /samples/{sampleId}:
+    delete:
+      summary: Delete a user sample
+      parameters:
+        - in: path
+          name: sampleId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Sample deleted
+  /media/assets:
+    get:
+      summary: List media library assets
+      parameters:
+        - in: query
+          name: source
+          schema:
+            type: string
+            enum: [system, user, all]
+            default: all
+        - in: query
+          name: slot
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Asset list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MediaLibraryAsset"
+    post:
+      summary: Upload a media library asset
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [image]
+              properties:
+                image:
+                  type: string
+                  format: binary
+                slot:
+                  type: string
+      responses:
+        "201":
+          description: Asset created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaLibraryAsset"
+  /media/assets/{assetId}:
+    delete:
+      summary: Delete a media library asset
+      parameters:
+        - in: path
+          name: assetId
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Asset deleted
+  /pass-type-fields:
+    get:
+      summary: Get pass-type field map
+      parameters:
+        - in: query
+          name: pass_type
+          schema:
+            type: string
+        - in: query
+          name: platform
+          schema:
+            type: string
+            enum: [apple, google]
+      responses:
+        "200":
+          description: Field map
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PassTypeFieldMap"
+components:
+  schemas:
+    MediaLibraryAsset:
+      type: object
+      required: [id, source, path, url, width, height, mime, size_bytes]
+      properties:
+        id:
+          type: string
+        owner_user_id:
+          type: string
+          nullable: true
+        source:
+          type: string
+          enum: [system, user]
+        slot:
+          type: string
+          nullable: true
+        path:
+          type: string
+        url:
+          type: string
+        width:
+          type: integer
+        height:
+          type: integer
+        mime:
+          type: string
+        size_bytes:
+          type: integer
+    PassTypeSample:
+      type: object
+      required: [id, source, name, pass_type, fields, images]
+      properties:
+        id:
+          type: string
+        owner_user_id:
+          type: string
+          nullable: true
+        source:
+          type: string
+          enum: [system, user]
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        pass_type:
+          type: string
+        platform:
+          type: string
+          enum: [apple, google]
+          nullable: true
+        fields:
+          type: object
+        images:
+          type: object
+    PassTypeSampleCreate:
+      type: object
+      required: [name, pass_type, fields, images]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        pass_type:
+          type: string
+        platform:
+          type: string
+          enum: [apple, google]
+          nullable: true
+        fields:
+          type: object
+        images:
+          type: object
+    PassTypeFieldMap:
+      type: object
+      required: [pass_type, platform, field_groups]
+      properties:
+        pass_type:
+          type: string
+        platform:
+          type: string
+          enum: [apple, google]
+        field_groups:
+          type: object
+        constraints:
+          type: object

@@ -1,7 +1,10 @@
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { MediaLibrary } from '@/components/media-library';
 import passes from '@/routes/passes';
 import type { PassImageUploadResult, PassImageSlot, PassPlatform } from '@/types/pass';
+import type { MediaLibraryAsset } from '@/types/sample';
+import { buildUploadResultFromAsset } from '@/lib/samples';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Upload, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -35,6 +38,7 @@ export function ImageUploader({
 	const [showQualityWarning, setShowQualityWarning] = useState(
 		qualityWarning ?? false,
 	);
+	const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
 
 	useEffect(() => {
 		setPreview(value);
@@ -121,10 +125,26 @@ export function ImageUploader({
 		onRemove();
 	};
 
+	const handleAssetSelect = (asset: MediaLibraryAsset) => {
+		const result = buildUploadResultFromAsset(asset, slot, platform);
+		setPreview(asset.url);
+		setShowQualityWarning(false);
+		onUpload(result);
+		setMediaLibraryOpen(false);
+	};
+
 	return (
 		<div className="space-y-2">
 			<div className="flex items-center justify-between">
 				<Label>{label}</Label>
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					onClick={() => setMediaLibraryOpen(true)}
+				>
+					Choose from library
+				</Button>
 				{description && (
 					<span className="text-xs text-muted-foreground">{description}</span>
 				)}
@@ -180,6 +200,12 @@ export function ImageUploader({
 					</div>
 				</div>
 			)}
+			<MediaLibrary
+				open={mediaLibraryOpen}
+				onOpenChange={setMediaLibraryOpen}
+				slot={slot}
+				onSelect={handleAssetSelect}
+			/>
 		</div>
 	);
 }

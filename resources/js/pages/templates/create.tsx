@@ -27,6 +27,7 @@ import { PassPreview } from '@/components/pass-preview';
 import { PassFieldEditor } from '@/components/pass-field-editor';
 import { ColorPicker } from '@/components/color-picker';
 import { ImageUploader } from '@/components/image-uploader';
+import { SampleOverwriteDialog, SamplePicker } from '@/components/sample-picker';
 import {
   applyPassImageUpload,
   getVariantPreviewUrl,
@@ -34,7 +35,21 @@ import {
   normalizePassImages,
   removePassImageSlot,
 } from '@/lib/pass-images';
+import {
+  buildImagesFromSample,
+  collectSampleImagePayload,
+  createSample,
+  hasAllSampleImageSlots,
+  listSamples,
+} from '@/lib/samples';
+import {
+  fetchPassTypeFieldMap,
+  requiresTransitType,
+  shouldShowFieldGroup,
+  type PassTypeFieldMap,
+} from '@/lib/pass-type-fields';
 import { cn } from '@/lib/utils';
+import type { PassTypeSample } from '@/types/sample';
 
 const passTypes: { value: PassType; label: string; description: string }[] = [
   { value: 'generic', label: 'Generic', description: 'General purpose pass' },
@@ -58,6 +73,13 @@ const transitTypes = [
 
 export default function TemplatesCreate() {
   const [previewPlatform, setPreviewPlatform] = useState<PassPlatform>('apple');
+  const [samplePickerOpen, setSamplePickerOpen] = useState(false);
+  const [sampleConfirmOpen, setSampleConfirmOpen] = useState(false);
+  const [samples, setSamples] = useState<PassTypeSample[]>([]);
+  const [samplesLoading, setSamplesLoading] = useState(false);
+  const [samplesError, setSamplesError] = useState<string | null>(null);
+  const [pendingSample, setPendingSample] = useState<PassTypeSample | null>(null);
+  const [fieldMap, setFieldMap] = useState<PassTypeFieldMap | null>(null);
   const { data, setData, post, processing, errors } = useForm({
     name: '',
     platforms: [] as PassPlatform[],
@@ -93,6 +115,53 @@ export default function TemplatesCreate() {
   const uploadPlatform = previewPlatform;
   const normalizedImages = normalizePassImages(data.images as PassImages, uploadPlatform);
 
+  useEffect(() => {
+    const fetchSamples = async () => {
+      if (!data.pass_type) {
+        setSamples([]);
+        return;
+      }
+
+      try {
+        setSamplesLoading(true);
+        setSamplesError(null);
+        const response = await listSamples({
+          pass_type: data.pass_type as PassType,
+          platform: previewPlatform,
+          source: 'all',
+        });
+        const items = Array.isArray(response) ? response : response.data;
+        setSamples(items ?? []);
+      } catch (error) {
+        console.error(error);
+        setSamplesError('Unable to load samples.');
+      } finally {
+        setSamplesLoading(false);
+      }
+    };
+
+    fetchSamples();
+  }, [data.pass_type, previewPlatform]);
+
+  useEffect(() => {
+    const fetchFieldMap = async () => {
+      if (!data.pass_type) {
+        setFieldMap(null);
+        return;
+      }
+
+      try {
+        const map = await fetchPassTypeFieldMap(data.pass_type as PassType, previewPlatform);
+        setFieldMap(map);
+      } catch (error) {
+        console.error(error);
+        setFieldMap(null);
+      }
+    };
+
+    fetchFieldMap();
+  }, [data.pass_type, previewPlatform]);
+
   const handleImageUpload = (slot: PassImageSlot) => (result: PassImageUploadResult) => {
     const nextImages = applyPassImageUpload(
       normalizePassImages(data.images as PassImages, uploadPlatform),
@@ -117,6 +186,97 @@ export default function TemplatesCreate() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     post(templates.store().url);
+  };
+
+  const hasSampleEdits = () => {
+    const hasFields =
+      data.design_data.description ||
+      data.design_data.organizationName ||
+      data.design_data.logoText ||
+      data.design_data.headerFields.length > 0 ||
+      data.design_data.primaryFields.length > 0 ||
+      data.design_data.secondaryFields.length > 0 ||
+      data.design_data.auxiliaryFields.length > 0 ||
+      data.design_data.backFields.length > 0 ||
+      data.design_data.transitType;
+
+    const hasImages =
+      Object.keys(normalizedImages.originals ?? {}).length > 0 ||
+      Object.keys(normalizedImages.variants ?? {}).length > 0;
+
+    return Boolean(hasFields || hasImages);
+  };
+
+  const applySample = (sample: PassTypeSample) => {
+    const nextImages = buildImagesFromSample(sample, previewPlatform);
+    setData({
+      ...data,
+      pass_type: sample.pass_type,
+      design_data: {
+        ...data.design_data,
+        ...sample.fields,
+      },
+      images: nextImages,
+    });
+    setSamplePickerOpen(false);
+  };
+
+  const handleSampleSelect = (sample: PassTypeSample) => {
+    if (hasSampleEdits()) {
+      setPendingSample(sample);
+      setSampleConfirmOpen(true);
+      return;
+    }
+
+    applySample(sample);
+  };
+
+  const handleSampleConfirm = () => {
+    if (pendingSample) {
+      applySample(pendingSample);
+    }
+    setPendingSample(null);
+    setSampleConfirmOpen(false);
+  };
+
+  const handleSampleCancel = () => {
+    setPendingSample(null);
+    setSampleConfirmOpen(false);
+  };
+
+  const handleSampleSave = async () => {
+    if (!data.pass_type) {
+      alert('Select a pass type before saving a sample.');
+      return;
+    }
+
+    const imagePayload = collectSampleImagePayload(normalizedImages, previewPlatform);
+    if (!hasAllSampleImageSlots(imagePayload)) {
+      alert('Please provide all image slots before saving a sample.');
+      return;
+    }
+
+    try {
+      await createSample({
+        name: data.name ? `Sample - ${data.name}` : 'New Sample',
+        description: data.design_data.description || null,
+        pass_type: data.pass_type as PassType,
+        platform: previewPlatform,
+        fields: data.design_data,
+        images: imagePayload as Record<PassImageSlot, string>,
+      });
+      await listSamples({
+        pass_type: data.pass_type as PassType,
+        platform: previewPlatform,
+        source: 'all',
+      }).then((response) => {
+        const items = Array.isArray(response) ? response : response.data;
+        setSamples(items ?? []);
+      });
+    } catch (error) {
+      console.error(error);
+      alert('Unable to save sample.');
+    }
   };
 
   return (
@@ -262,6 +422,29 @@ export default function TemplatesCreate() {
               </CardContent>
             </Card>
 
+            {/* Samples */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Pass Type Sample</CardTitle>
+                <CardDescription>
+                  Pick a ready sample to pre-fill fields and images.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setSamplePickerOpen(true)}
+                  disabled={!data.pass_type}
+                >
+                  {data.pass_type ? 'Choose Sample' : 'Select a pass type first'}
+                </Button>
+                {samplesError && (
+                  <p className="text-sm text-destructive">{samplesError}</p>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -372,79 +555,89 @@ export default function TemplatesCreate() {
                 <CardDescription>Add default field layout</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <Label>Header Fields</Label>
-                  <PassFieldEditor
-                    fields={data.design_data.headerFields}
-                    onChange={(fields) =>
-                      setData('design_data', {
-                        ...data.design_data,
-                        headerFields: fields,
-                      })
-                    }
-                    maxFields={3}
-                  />
-                </div>
+                {shouldShowFieldGroup(fieldMap, 'header') && (
+                  <div className="space-y-3">
+                    <Label>Header Fields</Label>
+                    <PassFieldEditor
+                      fields={data.design_data.headerFields}
+                      onChange={(fields) =>
+                        setData('design_data', {
+                          ...data.design_data,
+                          headerFields: fields,
+                        })
+                      }
+                      maxFields={3}
+                    />
+                  </div>
+                )}
 
-                <div className="space-y-3">
-                  <Label>Primary Fields</Label>
-                  <PassFieldEditor
-                    fields={data.design_data.primaryFields}
-                    onChange={(fields) =>
-                      setData('design_data', {
-                        ...data.design_data,
-                        primaryFields: fields,
-                      })
-                    }
-                    maxFields={3}
-                  />
-                </div>
+                {shouldShowFieldGroup(fieldMap, 'primary') && (
+                  <div className="space-y-3">
+                    <Label>Primary Fields</Label>
+                    <PassFieldEditor
+                      fields={data.design_data.primaryFields}
+                      onChange={(fields) =>
+                        setData('design_data', {
+                          ...data.design_data,
+                          primaryFields: fields,
+                        })
+                      }
+                      maxFields={3}
+                    />
+                  </div>
+                )}
 
-                <div className="space-y-3">
-                  <Label>Secondary Fields</Label>
-                  <PassFieldEditor
-                    fields={data.design_data.secondaryFields}
-                    onChange={(fields) =>
-                      setData('design_data', {
-                        ...data.design_data,
-                        secondaryFields: fields,
-                      })
-                    }
-                    maxFields={4}
-                  />
-                </div>
+                {shouldShowFieldGroup(fieldMap, 'secondary') && (
+                  <div className="space-y-3">
+                    <Label>Secondary Fields</Label>
+                    <PassFieldEditor
+                      fields={data.design_data.secondaryFields}
+                      onChange={(fields) =>
+                        setData('design_data', {
+                          ...data.design_data,
+                          secondaryFields: fields,
+                        })
+                      }
+                      maxFields={4}
+                    />
+                  </div>
+                )}
 
-                <div className="space-y-3">
-                  <Label>Auxiliary Fields</Label>
-                  <PassFieldEditor
-                    fields={data.design_data.auxiliaryFields}
-                    onChange={(fields) =>
-                      setData('design_data', {
-                        ...data.design_data,
-                        auxiliaryFields: fields,
-                      })
-                    }
-                    maxFields={4}
-                  />
-                </div>
+                {shouldShowFieldGroup(fieldMap, 'auxiliary') && (
+                  <div className="space-y-3">
+                    <Label>Auxiliary Fields</Label>
+                    <PassFieldEditor
+                      fields={data.design_data.auxiliaryFields}
+                      onChange={(fields) =>
+                        setData('design_data', {
+                          ...data.design_data,
+                          auxiliaryFields: fields,
+                        })
+                      }
+                      maxFields={4}
+                    />
+                  </div>
+                )}
 
-                <div className="space-y-3">
-                  <Label>Back Fields</Label>
-                  <PassFieldEditor
-                    fields={data.design_data.backFields}
-                    onChange={(fields) =>
-                      setData('design_data', {
-                        ...data.design_data,
-                        backFields: fields,
-                      })
-                    }
-                  />
-                </div>
+                {shouldShowFieldGroup(fieldMap, 'back') && (
+                  <div className="space-y-3">
+                    <Label>Back Fields</Label>
+                    <PassFieldEditor
+                      fields={data.design_data.backFields}
+                      onChange={(fields) =>
+                        setData('design_data', {
+                          ...data.design_data,
+                          backFields: fields,
+                        })
+                      }
+                    />
+                  </div>
+                )}
               </CardContent>
             </Card>
 
             {/* Transit Type */}
-            {data.pass_type === 'boardingPass' && (
+            {requiresTransitType(fieldMap) && (
               <Card>
                 <CardHeader>
                   <CardTitle>Transit Type</CardTitle>
@@ -578,6 +771,55 @@ export default function TemplatesCreate() {
           </div>
         </div>
       </form>
+
+      <SamplePicker
+        open={samplePickerOpen}
+        onOpenChange={setSamplePickerOpen}
+        title="Choose a sample"
+        description="Samples pre-fill fields and images for the selected pass type."
+        footer={
+          <Button type="button" variant="outline" onClick={handleSampleSave}>
+            Save current as sample
+          </Button>
+        }
+      >
+        <div className="space-y-3">
+          {samplesLoading ? (
+            <p className="text-sm text-muted-foreground">Loading samples…</p>
+          ) : samples.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No samples available yet. You can continue without a sample.
+            </p>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {samples.map((sample) => (
+                <button
+                  key={sample.id}
+                  type="button"
+                  className={cn(
+                    'rounded-lg border p-3 text-left transition-colors hover:border-primary',
+                  )}
+                  onClick={() => handleSampleSelect(sample)}
+                >
+                  <p className="text-sm font-medium">{sample.name}</p>
+                  {sample.description && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {sample.description}
+                    </p>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </SamplePicker>
+
+      <SampleOverwriteDialog
+        open={sampleConfirmOpen}
+        message="Applying a sample will replace your current fields and images."
+        onCancel={handleSampleCancel}
+        onConfirm={handleSampleConfirm}
+      />
     </AppLayout>
   );
 }

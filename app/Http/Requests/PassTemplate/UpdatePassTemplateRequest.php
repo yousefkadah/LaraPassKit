@@ -33,6 +33,7 @@ class UpdatePassTemplateRequest extends FormRequest
             'design_data.secondaryFields' => ['nullable', 'array'],
             'design_data.auxiliaryFields' => ['nullable', 'array'],
             'design_data.backFields' => ['nullable', 'array'],
+            'design_data.transitType' => ['nullable', 'string'],
             'images' => ['nullable', 'array'],
             'images.originals' => ['nullable', 'array'],
             'images.originals.*.path' => ['required', 'string'],
