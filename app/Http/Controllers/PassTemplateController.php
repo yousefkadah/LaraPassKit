@@ -78,7 +78,15 @@ class PassTemplateController extends Controller
     {
         $this->authorize('update', $template);
 
-        $template->update($request->validated());
+        $validated = $request->validated();
+        if (array_key_exists('design_data', $validated)) {
+            $validated['design_data'] = array_merge(
+                (array) ($template->design_data ?? []),
+                (array) $validated['design_data'],
+            );
+        }
+
+        $template->update($validated);
 
         return to_route('templates.show', $template)->with('success', 'Template updated successfully.');
     }

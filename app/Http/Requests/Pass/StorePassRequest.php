@@ -27,7 +27,7 @@ class StorePassRequest extends FormRequest
             'pass_type' => ['required', 'string', 'in:generic,coupon,boardingPass,eventTicket,storeCard,loyalty,offer,transit,stampCard'],
             'pass_template_id' => ['nullable', 'exists:pass_templates,id'],
             'pass_data' => ['required', 'array'],
-            'pass_data.description' => ['required', 'string', 'max:255'],
+            'pass_data.description' => ['nullable', 'string', 'max:255', 'required_without:pass_template_id'],
             'pass_data.backgroundColor' => ['nullable', 'string'],
             'pass_data.foregroundColor' => ['nullable', 'string'],
             'pass_data.labelColor' => ['nullable', 'string'],
