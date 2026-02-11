@@ -40,32 +40,66 @@ export interface BarcodeData {
 	altText?: string;
 }
 
+export type PassImageSlot = 'icon' | 'logo' | 'strip' | 'thumbnail' | 'background' | 'footer';
+
+export type PassImageScale = '1x' | '2x' | '3x';
+
+export interface PassImageOriginal {
+	path: string;
+	width: number;
+	height: number;
+	mime: string;
+	size_bytes: number;
+	created_at?: string;
+}
+
+export interface PassImageVariant {
+	path: string;
+	url?: string;
+	width: number;
+	height: number;
+	quality_warning?: boolean;
+	generated_at?: string;
+}
+
+export interface PassImageUploadOriginal {
+	path: string;
+	url: string;
+	width: number;
+	height: number;
+	mime: string;
+}
+
+export interface PassImageUploadVariant {
+	platform: PassPlatform;
+	slot: PassImageSlot;
+	scale: PassImageScale;
+	path: string;
+	url: string;
+	width: number;
+	height: number;
+	quality_warning?: boolean;
+}
+
+export interface PassImageUploadResult {
+	original: PassImageUploadOriginal;
+	variants: PassImageUploadVariant[];
+}
+
+export type PassImageVariants = Partial<
+	Record<PassPlatform, Partial<Record<PassImageSlot, Partial<Record<PassImageScale, PassImageVariant>>>>>
+>;
+
 export interface PassImages {
-	icon?: string;
-	icon_2x?: string;
-	icon_3x?: string;
-	logo?: string;
-	logo_2x?: string;
-	logo_3x?: string;
-	strip?: string;
-	strip_2x?: string;
-	strip_3x?: string;
-	thumbnail?: string;
-	thumbnail_2x?: string;
-	thumbnail_3x?: string;
-	background?: string;
-	background_2x?: string;
-	background_3x?: string;
-	footer?: string;
-	footer_2x?: string;
-	footer_3x?: string;
+	originals?: Partial<Record<PassImageSlot, PassImageOriginal>>;
+	variants?: PassImageVariants;
 }
 
 export interface Pass {
 	id: number;
 	user_id: number;
 	pass_template_id: number | null;
-	platform: PassPlatform;
+	platforms: PassPlatform[];
 	pass_type: PassType;
 	serial_number: string;
 	status: PassStatus;
@@ -88,7 +122,7 @@ export interface PassTemplate {
 	name: string;
 	description: string | null;
 	pass_type: PassType;
-	platform: PassPlatform;
+	platforms: PassPlatform[];
 	design_data: PassData;
 	images: PassImages | null;
 	created_at: string;
@@ -96,7 +130,7 @@ export interface PassTemplate {
 	passes_count?: number;
 }
 
-export type PlanKey = 'free' | 'pro_apple' | 'pro_google' | 'unlimited';
+export type PlanKey = 'free' | 'starter' | 'growth' | 'business' | 'enterprise';
 
 export interface Plan {
 	key: PlanKey;

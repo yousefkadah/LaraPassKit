@@ -22,7 +22,8 @@ class StorePassRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'platform' => ['required', 'string', 'in:apple,google'],
+            'platforms' => ['required', 'array', 'min:1'],
+            'platforms.*' => ['required', 'string', 'in:apple,google'],
             'pass_type' => ['required', 'string', 'in:generic,coupon,boardingPass,eventTicket,storeCard,loyalty,offer,transit,stampCard'],
             'pass_template_id' => ['nullable', 'exists:pass_templates,id'],
             'pass_data' => ['required', 'array'],
@@ -42,6 +43,20 @@ class StorePassRequest extends FormRequest
             'barcode_data.messageEncoding' => ['nullable', 'string'],
             'barcode_data.altText' => ['nullable', 'string'],
             'images' => ['nullable', 'array'],
+            'images.originals' => ['nullable', 'array'],
+            'images.originals.*.path' => ['required', 'string'],
+            'images.originals.*.width' => ['required', 'integer'],
+            'images.originals.*.height' => ['required', 'integer'],
+            'images.originals.*.mime' => ['required', 'string'],
+            'images.originals.*.size_bytes' => ['nullable', 'integer'],
+            'images.variants' => ['nullable', 'array'],
+            'images.variants.*' => ['array'],
+            'images.variants.*.*' => ['array'],
+            'images.variants.*.*.*.path' => ['required', 'string'],
+            'images.variants.*.*.*.url' => ['nullable', 'string'],
+            'images.variants.*.*.*.width' => ['required', 'integer'],
+            'images.variants.*.*.*.height' => ['required', 'integer'],
+            'images.variants.*.*.*.quality_warning' => ['nullable', 'boolean'],
         ];
     }
 }

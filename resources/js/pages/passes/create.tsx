@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import * as passes from '@/routes/passes';
 import { Badge } from '@/components/ui/badge';
@@ -16,12 +16,28 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Apple, ArrowLeft, ArrowRight, Check, Smartphone } from 'lucide-react';
-import { PassPlatform, PassType, PassTemplate, PassField } from '@/types/pass';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Apple, ArrowLeft, ArrowRight, Check, Chrome } from 'lucide-react';
+import {
+  type PassImageSlot,
+  type PassImages,
+  type PassImageUploadResult,
+  type PassPlatform,
+  type PassType,
+  type PassTemplate,
+  type PassField,
+} from '@/types/pass';
 import { PassPreview } from '@/components/pass-preview';
 import { PassFieldEditor } from '@/components/pass-field-editor';
 import { ColorPicker } from '@/components/color-picker';
 import { ImageUploader } from '@/components/image-uploader';
+import {
+  applyPassImageUpload,
+  getVariantPreviewUrl,
+  getVariantQualityWarning,
+  normalizePassImages,
+  removePassImageSlot,
+} from '@/lib/pass-images';
 import { cn } from '@/lib/utils';
 
 interface PassesCreateProps {
@@ -57,10 +73,11 @@ const barcodeFormats = [
 
 export default function PassesCreate({ templates }: PassesCreateProps) {
   const [step, setStep] = useState(1);
+  const [previewPlatform, setPreviewPlatform] = useState<PassPlatform>('apple');
   const totalSteps = 5;
 
   const { data, setData, post, processing, errors } = useForm({
-    platform: '' as PassPlatform | '',
+    platforms: [] as PassPlatform[],
     pass_type: '' as PassType | '',
     pass_template_id: '',
     pass_data: {
@@ -83,12 +100,28 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
       altText: '',
     },
     has_barcode: false,
-    images: {},
+    images: { originals: {}, variants: {} } as PassImages,
   });
 
-  const handlePlatformSelect = (platform: PassPlatform) => {
-    setData('platform', platform);
+  const handlePlatformToggle = (platform: PassPlatform) => {
+    const current = data.platforms;
+    if (current.includes(platform)) {
+      setData('platforms', current.filter(p => p !== platform));
+    } else {
+      setData('platforms', [...current, platform]);
+    }
   };
+
+  useEffect(() => {
+    if (data.platforms.length === 0) {
+      setPreviewPlatform('apple');
+      return;
+    }
+
+    if (!data.platforms.includes(previewPlatform)) {
+      setPreviewPlatform(data.platforms[0]);
+    }
+  }, [data.platforms, previewPlatform]);
 
   const handlePassTypeSelect = (passType: PassType) => {
     setData('pass_type', passType);
@@ -105,10 +138,10 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
       setData({
         ...data,
         pass_template_id: templateId,
-        platform: template.platform,
+        platforms: template.platforms,
         pass_type: template.pass_type,
         pass_data: template.design_data,
-        images: template.images,
+        images: normalizePassImages(template.images ?? {}, template.platforms[0] ?? 'apple'),
       });
     }
   };
@@ -119,9 +152,33 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
   };
 
   const canProceed = () => {
-    if (step === 1) return data.platform && data.pass_type;
+    if (step === 1) return data.platforms.length > 0 && data.pass_type;
     if (step === 2) return data.pass_data.description && data.pass_data.organizationName;
     return true;
+  };
+
+  const uploadPlatform = previewPlatform;
+  const normalizedImages = normalizePassImages(data.images as PassImages, uploadPlatform);
+
+  const handleImageUpload = (slot: PassImageSlot) => (result: PassImageUploadResult) => {
+    const nextImages = applyPassImageUpload(
+      normalizePassImages(data.images as PassImages, uploadPlatform),
+      uploadPlatform,
+      slot,
+      result,
+    );
+
+    setData('images', nextImages);
+  };
+
+  const handleImageRemove = (slot: PassImageSlot) => () => {
+    const nextImages = removePassImageSlot(
+      normalizePassImages(data.images as PassImages, uploadPlatform),
+      uploadPlatform,
+      slot,
+    );
+
+    setData('images', nextImages);
   };
 
   const steps = [
@@ -207,9 +264,9 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Select Platform</CardTitle>
+                  <CardTitle>Select Platforms</CardTitle>
                   <CardDescription>
-                    Choose between Apple Wallet or Google Wallet
+                    Choose one or both wallet platforms for this pass
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -217,12 +274,19 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                     <Card
                       className={cn(
                         'cursor-pointer transition-colors hover:border-primary',
-                        data.platform === 'apple' && 'border-primary bg-primary/5'
+                        data.platforms.includes('apple') && 'border-primary bg-primary/5'
                       )}
-                      onClick={() => handlePlatformSelect('apple')}
+                      onClick={() => handlePlatformToggle('apple')}
                     >
                       <CardContent className="flex flex-col items-center justify-center py-8">
-                        <Apple className="h-12 w-12 mb-4" />
+                        <div className="relative">
+                          <Apple className="h-12 w-12 mb-4" />
+                          {data.platforms.includes('apple') && (
+                            <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-0.5">
+                              <Apple className="h-4 w-4" />
+                            </div>
+                          )}
+                        </div>
                         <h3 className="font-semibold mb-1">Apple Wallet</h3>
                         <p className="text-sm text-muted-foreground text-center">
                           For iPhone and Apple Watch users
@@ -233,12 +297,19 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                     <Card
                       className={cn(
                         'cursor-pointer transition-colors hover:border-primary',
-                        data.platform === 'google' && 'border-primary bg-primary/5'
+                        data.platforms.includes('google') && 'border-primary bg-primary/5'
                       )}
-                      onClick={() => handlePlatformSelect('google')}
+                      onClick={() => handlePlatformToggle('google')}
                     >
                       <CardContent className="flex flex-col items-center justify-center py-8">
-                        <Smartphone className="h-12 w-12 mb-4" />
+                        <div className="relative">
+                          <Chrome className="h-12 w-12 mb-4" />
+                          {data.platforms.includes('google') && (
+                            <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-0.5">
+                              <Check className="h-3 w-3" />
+                            </div>
+                          )}
+                        </div>
                         <h3 className="font-semibold mb-1">Google Wallet</h3>
                         <p className="text-sm text-muted-foreground text-center">
                           For Android device users
@@ -246,8 +317,14 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                       </CardContent>
                     </Card>
                   </div>
-                  {errors.platform && (
-                    <p className="text-sm text-destructive mt-2">{errors.platform}</p>
+                  {data.platforms.length === 2 && (
+                    <p className="text-sm text-primary mt-3 flex items-center gap-1">
+                      <Check className="h-4 w-4" />
+                      Both platforms selected — this pass will be available on Apple and Google Wallet
+                    </p>
+                  )}
+                  {errors.platforms && (
+                    <p className="text-sm text-destructive mt-2">{errors.platforms}</p>
                   )}
                 </CardContent>
               </Card>
@@ -536,11 +613,34 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                     <CardTitle>Preview</CardTitle>
                     <CardDescription>Live preview of your pass</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
+                    {data.platforms.length > 1 && (
+                      <ToggleGroup
+                        type="single"
+                        value={previewPlatform}
+                        onValueChange={(value) => {
+                          if (value) {
+                            setPreviewPlatform(value as PassPlatform);
+                          }
+                        }}
+                        className="justify-start"
+                      >
+                        {data.platforms.includes('apple') && (
+                          <ToggleGroupItem value="apple" aria-label="Apple Wallet preview">
+                            <Apple className="h-4 w-4" />
+                          </ToggleGroupItem>
+                        )}
+                        {data.platforms.includes('google') && (
+                          <ToggleGroupItem value="google" aria-label="Google Wallet preview">
+                            <Chrome className="h-4 w-4" />
+                          </ToggleGroupItem>
+                        )}
+                      </ToggleGroup>
+                    )}
                     <PassPreview
                       passData={data.pass_data}
                       barcodeData={data.has_barcode ? data.barcode_data : undefined}
-                      platform={data.platform}
+                      platform={previewPlatform}
                     />
                   </CardContent>
                 </Card>
@@ -548,7 +648,6 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
             </div>
           )}
 
-          {/* Step 3: Barcode */}
           {step === 3 && (
             <Card>
               <CardHeader>
@@ -650,130 +749,71 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
               <CardHeader>
                 <CardTitle>Pass Images</CardTitle>
                 <CardDescription>
-                  Upload images for your pass (all images are optional)
+                  Upload images for your pass. We will resize with transparent
+                  padding for the selected platform.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2">
                   <ImageUploader
                     label="Icon"
-                    description="29x29 pixels, required for Apple Wallet"
-                    value={data.images['icon.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'icon.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Icon @2x"
-                    description="58x58 pixels"
-                    value={data.images['icon@2x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'icon@2x.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Icon @3x"
-                    description="87x87 pixels"
-                    value={data.images['icon@3x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'icon@3x.png': file })
-                    }
+                    description="Required for Apple Wallet"
+                    slot="icon"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'icon')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'icon')}
+                    onUpload={handleImageUpload('icon')}
+                    onRemove={handleImageRemove('icon')}
                   />
                   <ImageUploader
                     label="Logo"
-                    description="160x50 pixels"
-                    value={data.images['logo.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'logo.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Logo @2x"
-                    description="320x100 pixels"
-                    value={data.images['logo@2x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'logo@2x.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Logo @3x"
-                    description="480x150 pixels"
-                    value={data.images['logo@3x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'logo@3x.png': file })
-                    }
+                    description="Appears near the top of the pass"
+                    slot="logo"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'logo')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'logo')}
+                    onUpload={handleImageUpload('logo')}
+                    onRemove={handleImageRemove('logo')}
                   />
                   <ImageUploader
                     label="Background"
-                    description="180x220 pixels"
-                    value={data.images['background.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'background.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Background @2x"
-                    description="360x440 pixels"
-                    value={data.images['background@2x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'background@2x.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Background @3x"
-                    description="540x660 pixels"
-                    value={data.images['background@3x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'background@3x.png': file })
-                    }
+                    description="Optional background image"
+                    slot="background"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'background')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'background')}
+                    onUpload={handleImageUpload('background')}
+                    onRemove={handleImageRemove('background')}
                   />
                   <ImageUploader
                     label="Strip"
-                    description="375x123 pixels for event/coupon passes"
-                    value={data.images['strip.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'strip.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Strip @2x"
-                    description="750x246 pixels"
-                    value={data.images['strip@2x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'strip@2x.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Strip @3x"
-                    description="1125x369 pixels"
-                    value={data.images['strip@3x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'strip@3x.png': file })
-                    }
+                    description="Event/coupon passes"
+                    slot="strip"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'strip')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'strip')}
+                    onUpload={handleImageUpload('strip')}
+                    onRemove={handleImageRemove('strip')}
                   />
                   <ImageUploader
                     label="Thumbnail"
-                    description="90x90 pixels"
-                    value={data.images['thumbnail.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'thumbnail.png': file })
-                    }
+                    description="Small square image"
+                    slot="thumbnail"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'thumbnail')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'thumbnail')}
+                    onUpload={handleImageUpload('thumbnail')}
+                    onRemove={handleImageRemove('thumbnail')}
                   />
                   <ImageUploader
-                    label="Thumbnail @2x"
-                    description="180x180 pixels"
-                    value={data.images['thumbnail@2x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'thumbnail@2x.png': file })
-                    }
-                  />
-                  <ImageUploader
-                    label="Thumbnail @3x"
-                    description="270x270 pixels"
-                    value={data.images['thumbnail@3x.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'thumbnail@3x.png': file })
-                    }
+                    label="Footer"
+                    description="Optional footer image"
+                    slot="footer"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'footer')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'footer')}
+                    onUpload={handleImageUpload('footer')}
+                    onRemove={handleImageRemove('footer')}
                   />
                 </div>
               </CardContent>
@@ -790,18 +830,20 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label className="text-muted-foreground">Platform</Label>
+                      <Label className="text-muted-foreground">Platforms</Label>
                       <div className="flex items-center gap-2 mt-1">
-                        {data.platform === 'apple' ? (
-                          <>
+                        {data.platforms.includes('apple') && (
+                          <div className="flex items-center gap-1">
                             <Apple className="h-4 w-4" />
                             <span>Apple Wallet</span>
-                          </>
-                        ) : (
-                          <>
-                            <Smartphone className="h-4 w-4" />
+                          </div>
+                        )}
+                        {data.platforms.length === 2 && <span className="text-muted-foreground">+</span>}
+                        {data.platforms.includes('google') && (
+                          <div className="flex items-center gap-1">
+                            <Chrome className="h-4 w-4" />
                             <span>Google Wallet</span>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -833,7 +875,7 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                     <div>
                       <Label className="text-muted-foreground">Images</Label>
                       <p className="mt-1">
-                        {Object.keys(data.images).length} image(s) uploaded
+                        {Object.keys(normalizedImages.originals ?? {}).length} image(s) uploaded
                       </p>
                     </div>
                   </CardContent>
@@ -848,7 +890,7 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                     <pre className="text-xs bg-muted p-4 rounded-lg overflow-auto max-h-96">
                       {JSON.stringify(
                         {
-                          platform: data.platform,
+                          platforms: data.platforms,
                           pass_type: data.pass_type,
                           pass_data: data.pass_data,
                           barcode_data: data.has_barcode ? data.barcode_data : null,
@@ -866,11 +908,34 @@ export default function PassesCreate({ templates }: PassesCreateProps) {
                   <CardHeader>
                     <CardTitle>Final Preview</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
+                    {data.platforms.length > 1 && (
+                      <ToggleGroup
+                        type="single"
+                        value={previewPlatform}
+                        onValueChange={(value) => {
+                          if (value) {
+                            setPreviewPlatform(value as PassPlatform);
+                          }
+                        }}
+                        className="justify-start"
+                      >
+                        {data.platforms.includes('apple') && (
+                          <ToggleGroupItem value="apple" aria-label="Apple Wallet preview">
+                            <Apple className="h-4 w-4" />
+                          </ToggleGroupItem>
+                        )}
+                        {data.platforms.includes('google') && (
+                          <ToggleGroupItem value="google" aria-label="Google Wallet preview">
+                            <Chrome className="h-4 w-4" />
+                          </ToggleGroupItem>
+                        )}
+                      </ToggleGroup>
+                    )}
                     <PassPreview
                       passData={data.pass_data}
                       barcodeData={data.has_barcode ? data.barcode_data : undefined}
-                      platform={data.platform}
+                      platform={previewPlatform}
                     />
                   </CardContent>
                 </Card>

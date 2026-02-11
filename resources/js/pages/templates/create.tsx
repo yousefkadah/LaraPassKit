@@ -1,4 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import * as templates from '@/routes/templates';
 import { Button } from '@/components/ui/button';
@@ -12,12 +13,27 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Apple, ArrowLeft, Smartphone } from 'lucide-react';
-import { PassPlatform, PassType, PassField } from '@/types/pass';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Apple, ArrowLeft, Check, Chrome } from 'lucide-react';
+import {
+  type PassImageSlot,
+  type PassImages,
+  type PassImageUploadResult,
+  type PassPlatform,
+  type PassType,
+  type PassField,
+} from '@/types/pass';
 import { PassPreview } from '@/components/pass-preview';
 import { PassFieldEditor } from '@/components/pass-field-editor';
 import { ColorPicker } from '@/components/color-picker';
 import { ImageUploader } from '@/components/image-uploader';
+import {
+  applyPassImageUpload,
+  getVariantPreviewUrl,
+  getVariantQualityWarning,
+  normalizePassImages,
+  removePassImageSlot,
+} from '@/lib/pass-images';
 import { cn } from '@/lib/utils';
 
 const passTypes: { value: PassType; label: string; description: string }[] = [
@@ -41,9 +57,10 @@ const transitTypes = [
 ];
 
 export default function TemplatesCreate() {
+  const [previewPlatform, setPreviewPlatform] = useState<PassPlatform>('apple');
   const { data, setData, post, processing, errors } = useForm({
     name: '',
-    platform: '' as PassPlatform | '',
+    platforms: [] as PassPlatform[],
     pass_type: '' as PassType | '',
     design_data: {
       description: '',
@@ -59,8 +76,43 @@ export default function TemplatesCreate() {
       backFields: [] as PassField[],
       transitType: '' as string,
     },
-    images: {},
+    images: { originals: {}, variants: {} } as PassImages,
   });
+
+  useEffect(() => {
+    if (data.platforms.length === 0) {
+      setPreviewPlatform('apple');
+      return;
+    }
+
+    if (!data.platforms.includes(previewPlatform)) {
+      setPreviewPlatform(data.platforms[0]);
+    }
+  }, [data.platforms, previewPlatform]);
+
+  const uploadPlatform = previewPlatform;
+  const normalizedImages = normalizePassImages(data.images as PassImages, uploadPlatform);
+
+  const handleImageUpload = (slot: PassImageSlot) => (result: PassImageUploadResult) => {
+    const nextImages = applyPassImageUpload(
+      normalizePassImages(data.images as PassImages, uploadPlatform),
+      uploadPlatform,
+      slot,
+      result,
+    );
+
+    setData('images', nextImages);
+  };
+
+  const handleImageRemove = (slot: PassImageSlot) => () => {
+    const nextImages = removePassImageSlot(
+      normalizePassImages(data.images as PassImages, uploadPlatform),
+      uploadPlatform,
+      slot,
+    );
+
+    setData('images', nextImages);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,20 +169,30 @@ export default function TemplatesCreate() {
             {/* Platform Selection */}
             <Card>
               <CardHeader>
-                <CardTitle>Platform *</CardTitle>
+                <CardTitle>Platforms *</CardTitle>
                 <CardDescription>
-                  Choose your target platform
+                  Choose your target platforms (select one or both)
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                   <Card
                     className={cn(
-                      'cursor-pointer transition-colors hover:border-primary',
-                      data.platform === 'apple' && 'border-primary bg-primary/5'
+                      'cursor-pointer transition-colors hover:border-primary relative',
+                      data.platforms.includes('apple') && 'border-primary bg-primary/5'
                     )}
-                    onClick={() => setData('platform', 'apple')}
+                    onClick={() => {
+                      const platforms = data.platforms.includes('apple')
+                        ? data.platforms.filter((p) => p !== 'apple')
+                        : [...data.platforms, 'apple' as PassPlatform];
+                      setData('platforms', platforms);
+                    }}
                   >
+                    {data.platforms.includes('apple') && (
+                      <div className="absolute top-3 right-3 rounded-full bg-primary p-1">
+                        <Check className="h-3 w-3 text-primary-foreground" />
+                      </div>
+                    )}
                     <CardContent className="flex flex-col items-center justify-center py-8">
                       <Apple className="h-12 w-12 mb-4" />
                       <h3 className="font-semibold mb-1">Apple Wallet</h3>
@@ -139,19 +201,29 @@ export default function TemplatesCreate() {
 
                   <Card
                     className={cn(
-                      'cursor-pointer transition-colors hover:border-primary',
-                      data.platform === 'google' && 'border-primary bg-primary/5'
+                      'cursor-pointer transition-colors hover:border-primary relative',
+                      data.platforms.includes('google') && 'border-primary bg-primary/5'
                     )}
-                    onClick={() => setData('platform', 'google')}
+                    onClick={() => {
+                      const platforms = data.platforms.includes('google')
+                        ? data.platforms.filter((p) => p !== 'google')
+                        : [...data.platforms, 'google' as PassPlatform];
+                      setData('platforms', platforms);
+                    }}
                   >
+                    {data.platforms.includes('google') && (
+                      <div className="absolute top-3 right-3 rounded-full bg-primary p-1">
+                        <Check className="h-3 w-3 text-primary-foreground" />
+                      </div>
+                    )}
                     <CardContent className="flex flex-col items-center justify-center py-8">
-                      <Smartphone className="h-12 w-12 mb-4" />
+                      <Chrome className="h-12 w-12 mb-4" />
                       <h3 className="font-semibold mb-1">Google Wallet</h3>
                     </CardContent>
                   </Card>
                 </div>
-                {errors.platform && (
-                  <p className="text-sm text-destructive mt-2">{errors.platform}</p>
+                {errors.platforms && (
+                  <p className="text-sm text-destructive mt-2">{errors.platforms}</p>
                 )}
               </CardContent>
             </Card>
@@ -410,26 +482,31 @@ export default function TemplatesCreate() {
               <CardHeader>
                 <CardTitle>Template Images</CardTitle>
                 <CardDescription>
-                  Upload default images for this template
+                  Upload default images. We will resize with transparent padding
+                  for the selected platform.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-6 md:grid-cols-2">
                   <ImageUploader
                     label="Icon"
-                    description="29x29 pixels"
-                    value={data.images['icon.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'icon.png': file })
-                    }
+                    description="Required for Apple Wallet"
+                    slot="icon"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'icon')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'icon')}
+                    onUpload={handleImageUpload('icon')}
+                    onRemove={handleImageRemove('icon')}
                   />
                   <ImageUploader
                     label="Logo"
-                    description="160x50 pixels"
-                    value={data.images['logo.png']}
-                    onChange={(file) =>
-                      setData('images', { ...data.images, 'logo.png': file })
-                    }
+                    description="Appears near the top of the pass"
+                    slot="logo"
+                    platform={uploadPlatform}
+                    value={getVariantPreviewUrl(normalizedImages, uploadPlatform, 'logo')}
+                    qualityWarning={getVariantQualityWarning(normalizedImages, uploadPlatform, 'logo')}
+                    onUpload={handleImageUpload('logo')}
+                    onRemove={handleImageRemove('logo')}
                   />
                 </div>
               </CardContent>
@@ -443,11 +520,36 @@ export default function TemplatesCreate() {
                 <CardTitle>Live Preview</CardTitle>
               </CardHeader>
               <CardContent>
-                {data.platform ? (
-                  <PassPreview
-                    passData={data.design_data}
-                    platform={data.platform}
-                  />
+                {data.platforms.length > 0 ? (
+                  <div className="space-y-4">
+                    {data.platforms.length > 1 && (
+                      <ToggleGroup
+                        type="single"
+                        value={previewPlatform}
+                        onValueChange={(value) => {
+                          if (value) {
+                            setPreviewPlatform(value as PassPlatform);
+                          }
+                        }}
+                        className="justify-start"
+                      >
+                        {data.platforms.includes('apple') && (
+                          <ToggleGroupItem value="apple" aria-label="Apple Wallet preview">
+                            <Apple className="h-4 w-4" />
+                          </ToggleGroupItem>
+                        )}
+                        {data.platforms.includes('google') && (
+                          <ToggleGroupItem value="google" aria-label="Google Wallet preview">
+                            <Chrome className="h-4 w-4" />
+                          </ToggleGroupItem>
+                        )}
+                      </ToggleGroup>
+                    )}
+                    <PassPreview
+                      passData={data.design_data}
+                      platform={previewPlatform}
+                    />
+                  </div>
                 ) : (
                   <div className="flex items-center justify-center h-64 bg-muted/30 rounded-lg">
                     <p className="text-sm text-muted-foreground">
