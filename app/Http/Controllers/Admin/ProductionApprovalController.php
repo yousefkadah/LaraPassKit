@@ -118,7 +118,130 @@ class ProductionApprovalController extends Controller
     }
 
     /**
-     * Approve a production tier request.
+     * Request production tier upgrade.
+     * 
+     * @return JsonResponse
+     */
+    public function requestProduction(): JsonResponse
+    {
+        $user = Auth::user();
+
+        try {
+            $this->tierService->submitProductionRequest($user);
+
+            return response()->json([
+                'message' => 'Production tier request submitted successfully',
+                'next_step' => 'Admin will review your request within 24 hours',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Cannot request production: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Request to go live (pre-launch checklist validation).
+     * 
+     * @return JsonResponse
+     */
+    public function requestLive(): JsonResponse
+    {
+        $user = Auth::user();
+
+        if ($user->tier !== 'Production') {
+            return response()->json([
+                'message' => 'User must be in Production tier to request live',
+            ], 422);
+        }
+
+        try {
+            $valid = $this->tierService->requestLive($user);
+
+            if (!$valid) {
+                return response()->json([
+                    'message' => 'Pre-launch checklist requirements not met',
+                    'missing_requirements' => $this->getMissingRequirements($user),
+                ], 422);
+            }
+
+            return response()->json([
+                'message' => 'Pre-launch checklist validated',
+                'ready_for_live' => true,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Validation failed: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Advance user to live tier.
+     * 
+     * @return JsonResponse
+     */
+    public function goLive(): JsonResponse
+    {
+        $user = Auth::user();
+
+        if ($user->tier !== 'Production') {
+            return response()->json([
+                'message' => 'User must be in Production tier to go live',
+            ], 422);
+        }
+
+        try {
+            $this->tierService->advanceToLive($user);
+
+            return response()->json([
+                'message' => 'Congratulations! Your account is now LIVE 🎉',
+                'user' => [
+                    'id' => $user->id,
+                    'tier' => $user->tier,
+                    'live_approved_at' => $user->live_approved_at,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to advance to live: ' . $e->getMessage(),
+            ], 422);
+        }
+    }
+
+    /**
+     * Get missing pre-launch checklist requirements.
+     */
+    private function getMissingRequirements(User $user): array
+    {
+        $requirements = [];
+
+        $hasAppleCert = $user->appleCertificates()->whereNull('deleted_at')->where('expiry_date', '>', now())->exists();
+        if (!$hasAppleCert) {
+            $requirements[] = 'Valid Apple Wallet certificate required';
+        }
+
+        $hasGoogleCred = $user->googleCredentials()->whereNull('deleted_at')->exists();
+        if (!$hasGoogleCred) {
+            $requirements[] = 'Google Wallet credentials required';
+        }
+
+        $hasPasses = method_exists($user, 'passes') && $user->passes()->exists();
+        if (!$hasPasses) {
+            $requirements[] = 'At least one pass must be created';
+        }
+
+        $checklist = $user->pre_launch_checklist ?? [];
+        if (!isset($checklist['tested_on_device']) || !$checklist['tested_on_device']) {
+            $requirements[] = 'Must confirm testing on device';
+        }
+
+        if (empty($user->name) || empty($user->business_name ?? null)) {
+            $requirements[] = 'Complete user profile information';
+        }
+
+        return $requirements;
+    }
      * 
      * @param User $user
      * @return JsonResponse
