@@ -519,25 +519,29 @@
 
 ### Feature Tests (T4xx)
 
-- [ ] **T409**: Create AppleCertificateUploadTest
+- [x] **T409**: Create AppleCertificateUploadTest
   - Test: valid .cer file accepted, AppleCertificate record created, tier advanced
   - Test: invalid file rejected with specific error message
   - Test: multiple certs can be uploaded
+  - ✅ COMPLETE: AppleCertificateUploadTest with 8 test methods
 
-- [ ] **T410**: Create GoogleCredentialUploadTest
+- [x] **T410**: Create GoogleCredentialUploadTest
   - Test: valid JSON accepted, GoogleCredential record created, issuer_id extracted, tier advanced
   - Test: invalid JSON rejected with specific error messages (missing fields, invalid format)
   - Test: multiple credentials can be uploaded
+  - ✅ COMPLETE: GoogleCredentialUploadTest with 9 test methods
 
-- [ ] **T411**: Create CSRGenerationTest
+- [x] **T411**: Create CSRGenerationTest
   - Test: CSR downloads with correct filename (cert.certSigningRequest)
   - Test: CSR content is valid PEM format
   - Test: email with instructions sent
+  - ✅ COMPLETE: CSRGenerationTest with 7 test methods
 
-- [ ] **T412**: Create CertificateRenewalTest
+- [x] **T412**: Create CertificateRenewalTest
   - Test: renewal flow generates new CSR
   - Test: email with renewal instructions sent
   - Test: new cert upload creates fresh record
+  - ✅ COMPLETE: CertificateRenewalTest with 8 test methods
 
 ---
 
