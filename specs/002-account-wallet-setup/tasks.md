@@ -57,104 +57,123 @@
 ## Phase 1: Database Schema & Eloquent Models
 
 **Phase Duration**: 6-8 hours  
+**Actual Duration**: ~1 hour (completed)
 **Role**: Backend Engineer  
 **Dependency**: Phase 0 complete  
 **Deliverable**: All migrations run, all models with relationships functional  
+**Status**: ✅ COMPLETE (17/17 tasks)  
 
 ### Database Migrations (T1xx)
 
-- [ ] **T101**: Create migration: extend users table
+- [x] **T101**: Create migration: extend users table
   - Add columns: `region` (enum: 'EU'/'US'), `tier` (varchar), `industry` (varchar), `approval_status` (enum: 'pending'/'approved'), `approved_at` (timestamp), `approved_by` (FK to users.id)
   - Add indexes on region, approval_status
   - Test: migration runs, rollback works
+  - ✅ COMPLETE: Migration created and executed successfully
 
-- [ ] **T102**: Create migration: apple_certificates table
+- [x] **T102**: Create migration: apple_certificates table
   - Columns: id, user_id (FK), path, password (encrypted), expiry_date, valid_from, created_at, deleted_at
   - Add indexes on user_id, expiry_date
   - Test: foreign key constraint works
+  - ✅ COMPLETE: Migration created with expiry notification flags
 
-- [ ] **T103**: Create migration: google_credentials table
+- [x] **T103**: Create migration: google_credentials table
   - Columns: id, user_id (FK), issuer_id, private_key (encrypted), project_id, created_at, last_rotated_at, deleted_at
   - Add indexes on user_id, issuer_id
   - Test: schema correct
+  - ✅ COMPLETE: Migration created with rotation tracking
 
-- [ ] **T104**: Create migration: business_domains table
+- [x] **T104**: Create migration: business_domains table
   - Columns: id, domain (string, unique), created_at, updated_at
   - Create seeder with sample domains (stripe.com, acme.com, etc.)
   - Test: unique constraint enforced
+  - ✅ COMPLETE: Migration created with unique index
 
-- [ ] **T105**: Create migration: account_tiers table (or define enum + seeder)
+- [x] **T105**: Create migration: account_tiers table (or define enum + seeder)
   - Option A: Create table with id, name, description
   - Option B (Recommended): Create PHP enum + seed constants
   - Tiers: Email_Verified, Verified_And_Configured, Production, Live
   - Test: enum/table accessible in models
+  - ✅ COMPLETE: AccountTiers table created with 4 tier definitions
 
-- [ ] **T106**: Create migration: onboarding_steps table
+- [x] **T106**: Create migration: onboarding_steps table
   - Columns: id, user_id (FK), step_key (varchar), completed_at (nullable timestamp), created_at, updated_at
   - Step keys: 'email_verified', 'apple_setup', 'google_setup', 'user_profile', 'first_pass'
   - Add indexes on user_id, step_key
   - Test: migration runs
+  - ✅ COMPLETE: Migration created with compound index
 
-- [ ] **T107**: Run all migrations & verify schema
+- [x] **T107**: Run all migrations & verify schema
   - `php artisan migrate`
   - Verify all tables exist: users (extended), apple_certificates, google_credentials, business_domains, account_tiers, onboarding_steps
   - Test with `php artisan tinker`
+  - ✅ COMPLETE: All 6 migrations executed in 18.14ms, schema verified
 
 ### Eloquent Models (T1xx)
 
-- [ ] **T108**: Extend User model
+- [x] **T108**: Extend User model
   - Add fillable: region, tier, industry, approval_status, approved_at, approved_by
   - Add casts: region (enum), approval_status (enum), tier (enum)
   - Add relationships: `appleCertificates()`, `googleCredentials()`, `onboardingSteps()`
   - Add scopes: `scopeByRegion($region)`, `scopeApproved()`, `scopePending()`
   - Add methods: `isApproved()`, `currentTier()`, `canAccessWalletSetup()`
   - Test: relationships and scopes work
+  - ✅ COMPLETE: All relationships and helper methods added
 
-- [ ] **T109**: Create AppleCertificate model
+- [x] **T109**: Create AppleCertificate model
   - Belongs to User (many certificates per user)
   - Add methods: `renewableStatus()`, `isExpiringSoon()` (< 30 days), `isExpired()`
   - Add accessor for decrypted password via Eloquent casts
   - Test: relationships work, expiry checks correct
+  - ✅ COMPLETE: Model with isValid(), isExpiringSoon(), isExpired(), daysUntilExpiry()
 
-- [ ] **T110**: Create GoogleCredential model
+- [x] **T110**: Create GoogleCredential model
   - Belongs to User (one-to-many)
   - Add method: `parseIssuerIdFromJson()` (extract from uploaded JSON)
   - Add accessor for decrypted private_key
   - Test: relationships work
+  - ✅ COMPLETE: Model with parseIssuerIdFromJson() and isRecent() methods
 
-- [ ] **T111**: Create BusinessDomain model
+- [x] **T111**: Create BusinessDomain model
   - Simple model, fillable on domain field
   - Add method: `matchesDomain(string $email): bool` (extract email domain, check match)
   - Test: CRUD operations, domain matching
+  - ✅ COMPLETE: Model with matchesDomain() and byEmail() scope
 
-- [ ] **T112**: Create AccountTier model (if using table) or define enum constants
+- [x] **T112**: Create AccountTier model (if using table) or define enum constants
   - If table: simple model with name, description, requirements
   - If enum (recommended): define PHP enum with cases (Email_Verified, Verified_And_Configured, Production, Live)
   - Test: enum values accessible from User model
+  - ✅ COMPLETE: Model created with byKey() and ordered() methods
 
-- [ ] **T113**: Create OnboardingStep model
+- [x] **T113**: Create OnboardingStep model
   - Belongs to User
   - Add scope: `scopeIncomplete()` to find pending steps
   - Add scope: `scopeCompleted()`
   - Test: relationships and scopes work
+  - ✅ COMPLETE: Model with incomplete() & completed() scopes, markComplete() method
 
 ### Factories & Seeders (T1xx)
 
-- [ ] **T114**: Extend User factory with region/tier/approval variations
+- [x] **T114**: Extend User factory with region/tier/approval variations
   - Add states: `forRegionEU()`, `forRegionUS()`, `approved()`, `pending()`
   - Test: factories generate valid users with correct attributes
+  - ✅ COMPLETE: Added 5 states (forRegionEU, forRegionUS, approved, pending, admin)
 
-- [ ] **T115**: Create AppleCertificate factory
+- [x] **T115**: Create AppleCertificate factory
   - Generate valid certificate data (expiry dates in future, valid_from in past)
   - Test: factory creates valid records
+  - ✅ COMPLETE: Factory with expiringIn(), expired(), valid() states
 
-- [ ] **T116**: Create GoogleCredential factory
+- [x] **T116**: Create GoogleCredential factory
   - Generate mock service account JSON structure
   - Test: factory creates valid records
+  - ✅ COMPLETE: GoogleCredentialFactory with unrotated() and neverRotated() states
 
-- [ ] **T117**: Create BusinessDomain seeder
+- [x] **T117**: Create BusinessDomain seeder
   - Seed with 10-20 common business domains (stripe.com, acme.com, microsoft.com, apple.com, google.com, etc.)
   - Test: `php artisan db:seed BusinessDomainSeeder`
+  - ✅ COMPLETE: 20 domains seeded, AccountTierSeeder created with 4 tiers
 
 ---
 
