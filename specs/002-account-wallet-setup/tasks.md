@@ -12,38 +12,45 @@
 **Phase Duration**: 2-3 hours  
 **Role**: Research/Architect  
 **Deliverable**: `research.md` documenting all decisions  
+**Status**: ✅ COMPLETE
 
 ### Research Tasks (T0xx)
 
-- [ ] **T001**: Research Apple CSR generation with PHP OpenSSL
+- [x] **T001**: Research Apple CSR generation with PHP OpenSSL
   - Document `openssl_csr_new()` approach
   - Test CSR generation in isolation
   - Create code snippet for reference
+  - ✅ DECISION: PHP OpenSSL functions (self-service, no external deps)
 
-- [ ] **T002**: Research Google Service Account JSON validation
+- [x] **T002**: Research Google Service Account JSON validation
   - Document schema validation patterns
   - Test with real Google service account files
   - Create validation function template
+  - ✅ DECISION: Schema validation + field extraction (simple, specific errors)
 
-- [ ] **T003**: Research region scoping in Eloquent
+- [x] **T003**: Research region scoping in Eloquent
   - Compare global scopes vs. trait-based approach
   - Test performance implications
   - Document recommended pattern
+  - ✅ DECISION: Global scope + trait (safest, prevents leaks, automatic)
 
-- [ ] **T004**: Research email domain whitelist caching
+- [x] **T004**: Research email domain whitelist caching
   - Evaluate Redis vs. database cache
   - Set cache TTL (recommend 1 hour)
   - Create cache invalidation strategy
+  - ✅ DECISION: Redis cache 1-hour TTL with auto-invalidation
 
-- [ ] **T005**: Research certificate expiry job scheduling
+- [x] **T005**: Research certificate expiry job scheduling
   - Evaluate Laravel scheduler vs. queue jobs
   - Design daily expiry check job
   - Document scheduling pattern
+  - ✅ DECISION: Laravel Scheduler + queued jobs (standard, reliable, queued emails)
 
-- [ ] **T006**: Research admin authorization patterns
+- [x] **T006**: Research admin authorization patterns
   - Design route grouping for admin routes
   - Design policy class structure for admin checks
   - Document authorization gates
+  - ✅ DECISION: Simple admin flag + middleware + policy (MVP-sufficient, simple)
 
 ---
 
