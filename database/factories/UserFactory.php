@@ -100,6 +100,17 @@ class UserFactory extends Factory
     }
 
     /**
+     * Create a user with rejected status.
+     */
+    public function rejected(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'approval_status' => 'rejected',
+            'approved_at' => now(),
+        ]);
+    }
+
+    /**
      * Create an admin user.
      */
     public function admin(): static

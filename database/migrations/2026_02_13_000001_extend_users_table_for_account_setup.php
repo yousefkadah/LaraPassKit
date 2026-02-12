@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('industry')->nullable()->after('tier');
             
             // Approval Workflow
-            $table->enum('approval_status', ['pending', 'approved'])->default('pending')->after('industry');
+            $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('pending')->after('industry');
             $table->timestamp('approved_at')->nullable()->after('approval_status');
             $table->foreignId('approved_by')->nullable()->references('id')->on('users')->after('approved_at');
             
@@ -34,7 +34,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeignIdFor(users::class, 'approved_by');
+            $table->dropForeign(['approved_by']);
             $table->dropIndex(['region']);
             $table->dropIndex(['approval_status']);
             $table->dropColumn([
