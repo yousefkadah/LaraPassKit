@@ -5,6 +5,18 @@
 **Status**: Draft  
 **Input**: User description: "Account Creation & Wallet Setup - Add guided onboarding flow for Apple & Google authentication, email validation, region/industry selection, and account tier progression system"
 
+## Clarifications
+
+### Session 2026-02-13
+
+- Q: Can users have multiple Apple certificates/Google credentials? → A: Yes (Option B). Users can manage multiple certificates simultaneously for test/prod and key rotation scenarios.
+- Q: Admin approval workflow for Production tier advancement? → A: Manual review (Option A). Users submit requests that go into admin queue; admins manually review and approve/reject with email notifications.
+- Q: Account tier naming alignment with PassKit? → A: Keep custom names (Option A). Use: Email Verified → Verified & Configured → Production → Live (not PassKit's naming).
+- Q: Email domain validation mechanism? → A: Whitelist-based (Option A). Maintain `business_domains` table; matching domains auto-approve; others go to approval queue.
+- Q: Data region enforcement approach? → A: Single DB + region column (Option B). Add `region` column to users table; filter queries with `WHERE region = 'EU'` or `WHERE region = 'US'`.
+
+---
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Email Validation & Account Signup (Priority: P1)
@@ -146,45 +158,52 @@ New users should see a guided onboarding wizard on their first login that walks 
 
 ### Functional Requirements
 
-- **FR-001**: System MUST validate email domains during signup; business domains (non-consumer) are auto-approved
-- **FR-002**: System MUST queue consumer email accounts for manual admin approval before account activation
+- **FR-001**: System MUST validate email domains during signup using whitelist approach; emails matching `business_domains` table are auto-approved; all others queued for manual admin approval
+- **FR-002**: System MUST queue consumer email accounts for manual admin approval before account activation; admins review requests and approve/reject via admin panel with email notification to user
 - **FR-003**: System MUST provide a UI-based CSR generation tool for Apple Wallet setup without requiring server config files
-- **FR-004**: System MUST accept and validate Apple `.cer` certificate uploads and store them securely (encrypted at rest)
+- **FR-004**: System MUST accept and validate Apple `.cer` certificate uploads and store them securely (encrypted at rest); **users may have multiple certificates** for test/prod scenarios
 - **FR-005**: System MUST provide step-by-step UI guidance for Google Wallet setup (GCP project creation, API enabling, service account JSON upload)
-- **FR-006**: System MUST validate Google service account JSON files against Google's schema before accepting uploads
+- **FR-006**: System MUST validate Google service account JSON files against Google's schema before accepting uploads; **users may have multiple Google credentials** for key rotation and multi-project support
 - **FR-007**: System MUST track and display certificate expiry dates in the account settings dashboard
 - **FR-008**: System MUST send email notifications 30 days, 7 days, and at the moment of certificate expiry
 - **FR-009**: System MUST implement account tier progression: Email Verified → Verified & Configured → Production → Live
 - **FR-010**: System MUST automatically advance account tier when requirements are met (e.g., both Apple and Google credentials present)
-- **FR-011**: System MUST require explicit admin approval before advancing from Verified & Configured to Production tier
+- **FR-011**: System MUST require explicit manual admin approval before advancing from Verified & Configured to Production tier; users submit request, admins manually review and approve/reject
 - **FR-012**: System MUST display account tier and next-step roadmap in Account Settings
-- **FR-013**: System MUST allow users to select data region (EU/US) during signup and persist this choice
+- **FR-013**: System MUST allow users to select data region (EU/US) during signup and persist this choice in `region` column on users table; enforce region on all queries via WHERE filtering
 - **FR-014**: System MUST allow users to select industry (dropdown: Retail, Hospitality, Transportation, etc.) and tailor onboarding based on selection
-- **FR-015**: System MUST prevent data region changes after account creation
+- **FR-015**: System MUST prevent data region changes after account creation; region is immutable once set
 - **FR-016**: System MUST show a "Getting Started" wizard on first login with checkboxes for critical setup steps
 - **FR-017**: System MUST automatically mark wizard steps as complete based on stored account configuration
 
 ### Key Entities *(include if feature involves data)*
 
-- **User**: Represents an account holder with email, tier, region, industry, approval status
-- **AppleCertificate**: Represents uploaded Apple certificate with path, password, expiry_date, valid_from, renewal_date
-- **GoogleCredential**: Represents Google service account JSON with issuer_id, private_key, expiry_date, last_rotated_at
-- **AccountTier**: Represents user's progression level (Email_Verified, Verified_And_Configured, Production, Live) with unlock criteria
-- **OnboardingStep**: Represents setup steps (Email Verified, Apple Setup, Google Setup, User Profile, First Pass) with completion status
+- **User**: Represents an account holder with email, tier, region (EU/US - immutable), industry, approval status, created_at. Has one-to-many relationships with AppleCertificate and GoogleCredential (supports multiple).
+- **AppleCertificate** (multiple per user): Represents uploaded Apple certificate with path, password (encrypted), expiry_date, valid_from, created_at, renewable (false: current, true: renewal in progress). User can have multiple for test/prod scenarios.
+- **GoogleCredential** (multiple per user): Represents Google service account JSON with issuer_id, private_key (encrypted), expiry_date, last_rotated_at, created_at. User can have multiple for key rotation and multi-project support.
+- **AccountTier**: Represents user's progression level (Email_Verified, Verified_And_Configured, Production, Live) with unlock criteria and auto-advancement rules.
+- **BusinessDomain**: Whitelist table with domain names (e.g., acme.com, stripe.com). Email signup checks if user's domain matches this table for auto-approval.
+- **OnboardingStep**: Represents setup steps (Email Verified, Apple Setup, Google Setup, User Profile, First Pass) with completion status and timestamp.
 
 ## Constitution Check *(mandatory)*
 
-✅ **Laravel-first**: Uses Eloquent models (AppleCertificate, GoogleCredential), Form Requests for validation, policies for authorization (update own account), Inertia for frontend
+✅ **Laravel-first**: Uses Eloquent models (User, AppleCertificate, GoogleCredential, BusinessDomain, AccountTier, OnboardingStep), Form Requests for validation (email domain, certificate upload), policies for authorization (users edit own account, admins approve tiers), Inertia for frontend
 
-✅ **Wayfinder routes**: All routes use named routes via Wayfinder (account.settings, account.certificates, etc.)
+✅ **Database design**: Single PostgreSQL instance with `region` column on users table; all queries filtered by region via scopes. BusinessDomain table maintains whitelist of auto-approved domains.
 
-✅ **Testing**: Minimal test run: `php artisan test tests/Feature/AccountSetup/` covering signup, certificate upload, tier progression
+✅ **Multiple certificates**: AppleCertificate and GoogleCredential are one-to-many with User; users can have multiple of each for test/prod and key rotation scenarios
 
-✅ **Authorization**: Users can only view/edit their own account via policies; admin-only actions (approve consumer emails, approve production tier) are gated
+✅ **Wayfinder routes**: All routes use named routes via Wayfinder (account.settings, account.certificates.create, account.certificates.upload, admin.approvals, etc.)
 
-✅ **Queued work**: Email verification, certificate validation, tier progression checks should be queued as background jobs
+✅ **Testing**: Minimal test run: `php artisan test tests/Feature/AccountSetup/` covering signup with business/consumer emails, certificate upload (multiple), tier progression, manual approval
 
-✅ **N+1 prevention**: Account queries should eager-load AppleCertificate, GoogleCredential, OnboardingSteps relationships
+✅ **Authorization**: Users can only view/edit their own account and certificates via policies; admin-only actions (approve consumer emails, approve production tier, manage whitelist) are gated to authenticated admins
+
+✅ **Queued work**: Email verification, domain whitelist checking, certificate validation, tier progression checks, expiry notifications should be queued as background jobs
+
+✅ **N+1 prevention**: User queries should eager-load AppleCertificate, GoogleCredential, OnboardingSteps relationships
+
+✅ **Region scoping**: All user/pass data queries include region filter to prevent cross-region data leakage
 
 ## Success Criteria *(mandatory)*
 
@@ -203,13 +222,15 @@ New users should see a guided onboarding wizard on their first login that walks 
 
 ## Assumptions
 
-1. **Email Verification**: Assumes existing email verification system can be extended to validate business domains via a whitelist or domain pattern matching
-2. **Admin Panel**: Assumes an admin panel exists or will be built for approving consumer emails and production tier requests
-3. **Encryption**: Assumes Apple certificate passwords and Google service account keys will be encrypted at rest using Laravel's encryption
-4. **Background Jobs**: Assumes Laravel queue is available (Redis or database-backed) for async email notifications and validation tasks
+1. **Email Verification**: Uses whitelist-based approach; `business_domains` table maintains list of auto-approved domains (company domains); can be extended with pattern matching if needed
+2. **Admin Panel**: Assumes an admin panel exists or will be built for approving consumer emails and production tier requests (with email notification flow)
+3. **Encryption**: Assumes Apple certificate passwords and Google service account private keys will be encrypted at rest using Laravel's encryption
+4. **Background Jobs**: Assumes Laravel queue is available (Redis or database-backed) for async email notifications, expiry checks, and domain whitelist updates
 5. **Apple Developer Account**: Assumes users will have their own Apple Developer account ($99/year enrollment by them)
 6. **Google Cloud Project**: Assumes users will create their own GCP project and service account (no cost if free tier limits aren't exceeded)
 7. **Certificate Lifespan**: Assumes Apple certificates are 1-year validity (industry standard) and should be renewed annually
-8. **Industry List**: Assumes a static list of ~15-20 industries is sufficient; can be expanded later
-9. **Data Region**: Assumes EU data is stored in EU servers and US data in US servers (might require separate database instances or logical partitioning)
-10. **Onboarding Wizard**: Assumes wizard is optional and can be dismissed; users with existing setup skip wizard automatically
+8. **Multiple Certificates**: Users can maintain multiple Apple and Google credentials simultaneously for test/prod or key rotation scenarios
+9. **Industry List**: Assumes a static list of ~15-20 industries is sufficient; can be expanded later
+10. **Data Region**: Single PostgreSQL instance with region column on users table; all queries filtered via WHERE region = 'EU'/'US' scopes; region is immutable post-account-creation
+11. **Onboarding Wizard**: Assumes wizard is optional and can be dismissed; users with existing setup skip wizard automatically
+12. **Admin Approval**: Manual review process; admins have dedicated approval queue in admin panel with user details and certificate info visible for manual decision
