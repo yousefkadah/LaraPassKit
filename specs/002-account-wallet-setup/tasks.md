@@ -416,32 +416,35 @@
 
 ### Apple CSR Service (T4xx)
 
-- [ ] **T401**: Create AppleCSRService
+- [x] **T401**: Create AppleCSRService
   - Method: `generateCSR(User $user): string` (returns PEM-formatted CSR)
   - Use PHP OpenSSL: `openssl_csr_new()`, `openssl_csr_export()`
   - Generate CSR with subject: CN = user email, O = company name, OU = passkit, C = US
   - Store CSR in temp storage (session or temp file, max 1 day TTL)
   - Test: CSR generates valid PEM format, can be downloaded
+  - ✅ COMPLETE: AppleCSRService with generateCSR, downloadCSR, getAppleInstructions methods
 
-- [ ] **T402**: Create CertificateValidationService
+- [x] **T402**: Create CertificateValidationService
   - Method: `validateAppleCertificate(UploadedFile $file): array` (returns: valid=bool, errors=[], expiry_date, valid_from)
   - Use OpenSSL to validate: `openssl_x509_read()`, `openssl_x509_parse()`
   - Check: file is valid .cer format, not expired, signature valid
   - Extract expiry_date, valid_from from certificate
   - Return specific error messages on failure
   - Test: valid certs pass, invalid certs rejected with specific errors
+  - ✅ COMPLETE: validateAppleCertificate and validateGoogleJSON methods with full validation
 
-- [ ] **T403**: Create GoogleCredentialValidationService
+- [x] **T403**: Create GoogleCredentialValidationService
   - Method: `validateGoogleJSON(UploadedFile $file): array` (returns: valid=bool, errors=[], issuer_id, project_id)
   - Validate: is valid JSON, required fields present (type, project_id, private_key_id, private_key, client_email, client_id, auth_uri, token_uri)
   - Extract issuer_id from client_email (everything before @)
   - Check private_key format is valid RSA
   - Return specific error messages on failure
   - Test: valid JSON passes, invalid JSON rejected with specific errors
+  - ✅ COMPLETE: GoogleCredentialValidationService methods integrated in CertificateValidationService
 
 ### Certificate Controller (T4xx)
 
-- [ ] **T404**: Create CertificateController
+- [x] **T404**: Create CertificateController
   - GET /account/certificates/apple/csr (download CSR)
     - Call AppleCSRService::generateCSR()
     - Return file download response (Content-Disposition: attachment)
@@ -464,10 +467,11 @@
     - Trigger TierProgressionJob
     - Return success response with issuer_id, project_id
   - Test: all endpoints work, validation errors correct, tier progression triggered
+  - ✅ COMPLETE: CertificateController with 7 endpoints for Apple & Google management
 
 ### Apple Setup UI (T4xx)
 
-- [ ] **T405**: Create SetupApple.tsx page component (2-step wizard)
+- [x] **T405**: Create SetupApple.tsx page component (2-step wizard)
   - Step 1: "Generate CSR"
     - Button: "Generate Certificate Signing Request"
     - On click: GET /account/certificates/apple/csr (download file)
@@ -482,8 +486,9 @@
     - Success: show cert details (fingerprint, expiry, valid_from)
     - Button: "Upload Another" or "Done"
   - Test: UX flows correctly, errors are clear
+  - ✅ COMPLETE: SetupApple.tsx 2-step wizard with CSR generation and certificate upload
 
-- [ ] **T406**: Create SetupGoogle.tsx page component (5-step wizard)
+- [x] **T406**: Create SetupGoogle.tsx page component (5-step wizard)
   - 5-step wizard with progress indicator (X of 5):
     1. "Create GCP Project" (link to GCP, step-by-step instructions)
     2. "Enable Wallet API" (link + instructions, estimate 5 min)
@@ -495,6 +500,7 @@
   - Error display if JSON invalid (show which fields are missing/invalid)
   - Success: show issuer_id, project_id, credential status
   - Test: UX flows correctly, JSON validation works
+  - ✅ COMPLETE: SetupGoogle.tsx with 5-step wizard, auto-progression, success states
 
 ### Certificate Renewal Flow (T4xx)
 
@@ -506,9 +512,10 @@
 
 ### Routes (T4xx)
 
-- [ ] **T408**: Add Wayfinder routes for certificate operations
+- [x] **T408**: Add Wayfinder routes for certificate operations
   - Named routes: account.certificates.apple.csr, account.certificates.apple.upload, account.certificates.google.upload, account.certificates.{id}.delete, account.certificates.{id}.renew
   - Test: all named routes work with route() helper
+  - ✅ COMPLETE: Routes added to routes/api.php with Sanctum middleware
 
 ### Feature Tests (T4xx)
 
