@@ -114,6 +114,17 @@ class CertificateRenewalTest extends TestCase
         $this->assertNotEquals($oldCertId, $newCert->id);
 
         @unlink($tempPath);
+    }
+
+    /**
+     * Test only certificate owner can renew.
+     */
+    public function test_only_certificate_owner_can_renew(): void
+    {
+        Mail::fake();
+
+        $otherUser = User::factory()->approved()->create([
+            'email' => 'other@example.com',
         ]);
 
         $response = $this->actingAs($otherUser)->get(
