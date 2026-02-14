@@ -61,6 +61,7 @@ class AppleCertificateUploadTest extends TestCase
             'user_id' => $this->user->id,
         ]);
 
+        $this->actingAs($this->user);
         $certificate = AppleCertificate::where('user_id', $this->user->id)->first();
         $this->assertNotNull($certificate);
         $this->assertNotNull($certificate->fingerprint);
