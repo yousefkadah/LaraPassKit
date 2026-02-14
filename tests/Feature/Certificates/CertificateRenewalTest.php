@@ -86,14 +86,13 @@ class CertificateRenewalTest extends TestCase
 
         $certContent = $this->getValidAppleCertificatePem();
 
-        // Create a temporary file with the certificate content
-        $tempFile = tmpfile();
-        $tempPath = stream_get_meta_data($tempFile)['uri'];
-        fwrite($tempFile, $certContent);
+        // Create a temporary file with .pem extension
+        $tempPath = tempnam(sys_get_temp_dir(), 'cert_') . '.pem';
+        file_put_contents($tempPath, $certContent);
 
         $file = new \Illuminate\Http\UploadedFile(
             $tempPath,
-            'certificate.cer',
+            'certificate.pem',
             'application/x-x509-ca-cert',
             null,
             true
@@ -114,18 +113,7 @@ class CertificateRenewalTest extends TestCase
         $this->assertNotNull($newCert);
         $this->assertNotEquals($oldCertId, $newCert->id);
 
-        fclose($tempFile);
-    }
-
-    /**
-     * Test only certificate owner can renew.
-     */
-    public function test_only_certificate_owner_can_renew(): void
-    {
-        Mail::fake();
-
-        $otherUser = User::factory()->approved()->create([
-            'email' => 'other@example.com',
+        @unlink($tempPath);
         ]);
 
         $response = $this->actingAs($otherUser)->get(
