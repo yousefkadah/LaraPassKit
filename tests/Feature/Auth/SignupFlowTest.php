@@ -6,11 +6,14 @@ use App\Mail\UserApprovedMail;
 use App\Mail\UserPendingApprovalMail;
 use App\Models\BusinessDomain;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class SignupFlowTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();

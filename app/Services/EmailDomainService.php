@@ -80,14 +80,14 @@ class EmailDomainService
      * Approve a user account.
      *
      * @param  User  $user  The user to approve
-     * @param  User  $admin  The admin approving the user
+     * @param  User|null  $admin  The admin approving the user (null for auto-approvals)
      */
-    public function approveAccount(User $user, User $admin): void
+    public function approveAccount(User $user, ?User $admin): void
     {
         $user->update([
             'approval_status' => 'approved',
             'approved_at' => now(),
-            'approved_by' => $admin->id,
+            'approved_by' => $admin?->id,
         ]);
 
         MarkOnboardingStepJob::dispatch($user->id, 'email_verified');

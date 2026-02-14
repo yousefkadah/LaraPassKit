@@ -72,7 +72,7 @@ class CertificateController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'certificate' => 'required|file|mimes:cer,pem|max:512',
+            'certificate' => 'required|file|max:512',
             'password' => 'nullable|string|max:255',
         ]);
 
@@ -135,7 +135,7 @@ class CertificateController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'credentials' => 'required|file|mimes:json|max:50',
+            'credentials' => 'required|file|max:50',
         ]);
 
         $file = $request->file('credentials');

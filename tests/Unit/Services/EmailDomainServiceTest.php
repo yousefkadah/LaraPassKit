@@ -5,11 +5,14 @@ namespace Tests\Unit\Services;
 use App\Models\BusinessDomain;
 use App\Models\User;
 use App\Services\EmailDomainService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class EmailDomainServiceTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected EmailDomainService $service;
 
     protected function setUp(): void
