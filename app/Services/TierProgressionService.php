@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Events\ProductionApprovedEvent;
 use App\Events\TierAdvancedEvent;
+use App\Mail\AdminProductionRequestMail;
+use App\Mail\LiveTierMail;
 use App\Mail\ProductionApprovedMail;
 use App\Mail\ProductionRejectedMail;
+use App\Mail\ProductionRequestMail;
 use App\Mail\TierAdvancedMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
@@ -96,6 +99,8 @@ class TierProgressionService
         // For now, we'll update a column on the users table to track this
         $user->update([
             'production_requested_at' => now(),
+            'production_rejected_at' => null,
+            'production_rejected_reason' => null,
         ]);
 
         // Send email to user
@@ -119,12 +124,13 @@ class TierProgressionService
             throw new \Exception('User must be in Verified_And_Configured tier to approve for production.');
         }
 
-        $oldTier = $user->tier;
-
         $user->update([
             'tier' => 'Production',
             'production_approved_at' => now(),
             'production_approved_by' => $admin->id,
+            'production_requested_at' => null,
+            'production_rejected_at' => null,
+            'production_rejected_reason' => null,
         ]);
 
         // Send success email to user

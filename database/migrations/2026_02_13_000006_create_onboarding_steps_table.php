@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('step_key')->comment('Step identifier (email_verified, apple_setup, google_setup, user_profile, first_pass)');
             $table->timestamp('completed_at')->nullable()->comment('Timestamp when step was completed');
             $table->timestamps();
-            
+
             // Compound index for querying incomplete steps by user
             $table->index(['user_id', 'step_key']);
             $table->index(['completed_at']);

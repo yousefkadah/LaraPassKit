@@ -40,7 +40,7 @@ const TIER_DATA = {
 
 export default function TierBadge({ currentTier, compact = false }: TierBadgeProps) {
     const currentIndex = TIER_ORDER.indexOf(currentTier);
-    
+
     if (compact) {
         const tier = TIER_DATA[currentTier];
         return (

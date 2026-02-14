@@ -40,9 +40,9 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
     const nextTier = tierSequence[currentIndex + 1];
 
     // Check if user can progress to next tier
-    const canRequestProduction = 
-        currentTier === 'Verified_And_Configured' && 
-        hasAppleCert && 
+    const canRequestProduction =
+        currentTier === 'Verified_And_Configured' &&
+        hasAppleCert &&
         hasGoogleCred;
 
     if (currentTier === 'Live') {

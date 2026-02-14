@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\TierProgressionJob;
+use App\Jobs\MarkOnboardingStepsForWalletJob;
 use App\Models\AppleCertificate;
 use App\Models\GoogleCredential;
 use App\Models\User;
@@ -32,7 +33,7 @@ class CertificateController extends Controller
 
     /**
      * Download Apple CSR (Certificate Signing Request)
-     * 
+     *
      * @return \Illuminate\Http\Response|JsonResponse
      */
     public function downloadAppleCSR()
@@ -63,7 +64,7 @@ class CertificateController extends Controller
 
     /**
      * Upload Apple Wallet certificate (.cer file)
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -105,6 +106,7 @@ class CertificateController extends Controller
 
             // Trigger tier progression evaluation
             TierProgressionJob::dispatch($user);
+            MarkOnboardingStepsForWalletJob::dispatch($user->id);
 
             return response()->json([
                 'message' => 'Certificate uploaded successfully',
@@ -126,7 +128,7 @@ class CertificateController extends Controller
 
     /**
      * Upload Google Wallet service account JSON
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -166,6 +168,7 @@ class CertificateController extends Controller
 
             // Trigger tier progression evaluation
             TierProgressionJob::dispatch($user);
+            MarkOnboardingStepsForWalletJob::dispatch($user->id);
 
             return response()->json([
                 'message' => 'Google credentials uploaded successfully',
@@ -186,7 +189,7 @@ class CertificateController extends Controller
 
     /**
      * Delete Apple certificate
-     * 
+     *
      * @param AppleCertificate $certificate
      * @return JsonResponse
      */
@@ -210,7 +213,7 @@ class CertificateController extends Controller
 
     /**
      * Delete Google credential
-     * 
+     *
      * @param GoogleCredential $credential
      * @return JsonResponse
      */
@@ -234,7 +237,7 @@ class CertificateController extends Controller
 
     /**
      * Renew Apple certificate (generate new CSR)
-     * 
+     *
      * @param AppleCertificate $certificate
      * @return JsonResponse|\Illuminate\Http\Response
      */
@@ -277,7 +280,7 @@ class CertificateController extends Controller
     /**
      * Rotate Google credentials (generate new key)
      * Note: This requires manual rotation on Google Cloud console
-     * 
+     *
      * @param GoogleCredential $credential
      * @return JsonResponse
      */

@@ -15,16 +15,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/account', [AccountController::class, 'update']);
 
     // Tier progression endpoints
-    Route::post('/tier/request-production', [ProductionApprovalController::class, 'requestProduction']);
-    Route::post('/tier/request-live', [ProductionApprovalController::class, 'requestLive']);
-    Route::post('/tier/go-live', [ProductionApprovalController::class, 'goLive']);
+    Route::post('/tier/request-production', [ProductionApprovalController::class, 'requestProduction'])
+        ->name('account.tier.request-production');
+    Route::post('/tier/request-live', [ProductionApprovalController::class, 'requestLive'])
+        ->name('account.tier.request-live');
+    Route::post('/tier/go-live', [ProductionApprovalController::class, 'goLive'])
+        ->name('account.tier.go-live');
 
     // Certificate endpoints
     Route::get('/certificates/apple/csr', [CertificateController::class, 'downloadAppleCSR']);
     Route::post('/certificates/apple', [CertificateController::class, 'uploadAppleCertificate']);
     Route::delete('/certificates/apple/{certificate}', [CertificateController::class, 'deleteAppleCertificate']);
     Route::get('/certificates/apple/{certificate}/renew', [CertificateController::class, 'renewAppleCertificate']);
-    
+
     Route::post('/certificates/google', [CertificateController::class, 'uploadGoogleCredential']);
     Route::delete('/certificates/google/{credential}', [CertificateController::class, 'deleteGoogleCredential']);
     Route::get('/certificates/google/{credential}/rotate', [CertificateController::class, 'rotateGoogleCredential']);

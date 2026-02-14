@@ -7,11 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\ScopedByRegion;
 
 class Pass extends Model
 {
     /** @use HasFactory<\Database\Factories\PassFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, ScopedByRegion;
 
     /**
      * The attributes that are mass assignable.

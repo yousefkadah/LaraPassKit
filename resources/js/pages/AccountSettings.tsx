@@ -9,6 +9,8 @@ import InputError from '@/components/input-error';
 import AuthenticatedLayout from '@/layouts/authenticated-layout';
 import TierBadge from '@/components/tier-badge';
 import TierRoadmap from '@/components/tier-roadmap';
+import TierProgressionCard from '@/components/tier-progression-card';
+import PreLaunchChecklist from '@/components/pre-launch-checklist';
 import AppleCertificateList from '@/components/apple-certificate-list';
 import GoogleCredentialList from '@/components/google-credential-list';
 import OnboardingWizard from '@/components/onboarding-wizard';
@@ -56,6 +58,7 @@ interface PageProps {
     auth: {
         user: User;
     };
+    passCount?: number;
     appleCertificates?: Array<{
         id: number;
         fingerprint: string;
@@ -85,6 +88,7 @@ const getDaysElapsed = (date: string) => {
 
 export default function AccountSettings({
     auth,
+    passCount = 0,
     appleCertificates = [],
     googleCredentials = [],
     onboardingSteps = [],
@@ -98,6 +102,11 @@ export default function AccountSettings({
     const [isSaving, setIsSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [isRequestingProduction, setIsRequestingProduction] = useState(false);
+    const [requestError, setRequestError] = useState('');
+    const [isGoingLive, setIsGoingLive] = useState(false);
+    const [goLiveError, setGoLiveError] = useState('');
+    const [goLiveSuccess, setGoLiveSuccess] = useState(false);
 
     const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -142,9 +151,93 @@ export default function AccountSettings({
         }
     };
 
+    const handleRequestProduction = async () => {
+        setIsRequestingProduction(true);
+        setRequestError('');
+
+        try {
+            const response = await fetch('/api/tier/request-production', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setRequestError(data.message || 'Failed to request production tier');
+            } else {
+                setRequestError('');
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
+            }
+        } catch (error) {
+            console.error('Production request error:', error);
+            setRequestError('An unexpected error occurred');
+        } finally {
+            setIsRequestingProduction(false);
+        }
+    };
+
+    const handleGoLive = async (testedOnDevice: boolean) => {
+        setIsGoingLive(true);
+        setGoLiveError('');
+        setGoLiveSuccess(false);
+
+        try {
+            const validateResponse = await fetch('/api/tier/request-live', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ tested_on_device: testedOnDevice }),
+            });
+
+            const validateData = await validateResponse.json();
+
+            if (!validateResponse.ok) {
+                setGoLiveError(validateData.message || 'Pre-launch checklist validation failed');
+                return;
+            }
+
+            const goLiveResponse = await fetch('/api/tier/go-live', {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+            });
+
+            const goLiveData = await goLiveResponse.json();
+
+            if (!goLiveResponse.ok) {
+                setGoLiveError(goLiveData.message || 'Failed to go live');
+            } else {
+                setGoLiveSuccess(true);
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            }
+        } catch (error) {
+            console.error('Go live error:', error);
+            setGoLiveError('An unexpected error occurred');
+        } finally {
+            setIsGoingLive(false);
+        }
+    };
+
     const isPending = user.approval_status === 'pending';
     const isApproved = user.approval_status === 'approved';
     const isRejected = user.approval_status === 'rejected';
+    const hasAppleCert = appleCertificates.length > 0;
+    const hasGoogleCred = googleCredentials.length > 0;
+    const hasCreatedPass = passCount > 0;
+    const userProfileComplete = Boolean(user.name) && Boolean(user.industry);
 
     return (
         <AuthenticatedLayout>
@@ -366,6 +459,35 @@ export default function AccountSettings({
                                 />
                             </div>
                         </Card>
+
+                        <TierProgressionCard
+                            currentTier={user.tier}
+                            hasAppleCert={hasAppleCert}
+                            hasGoogleCred={hasGoogleCred}
+                            onRequestProduction={handleRequestProduction}
+                            isLoading={isRequestingProduction}
+                            error={requestError}
+                        />
+
+                        <PreLaunchChecklist
+                            userId={user.id}
+                            tier={user.tier}
+                            hasAppleCert={hasAppleCert}
+                            hasGoogleCred={hasGoogleCred}
+                            hasCreatedPass={hasCreatedPass}
+                            userProfileComplete={userProfileComplete}
+                            onGoLive={handleGoLive}
+                            isLoading={isGoingLive}
+                        />
+
+                        {goLiveError && (
+                            <InputError message={goLiveError} />
+                        )}
+                        {goLiveSuccess && (
+                            <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">
+                                Your account is now live! Redirecting...
+                            </div>
+                        )}
                     </TabsContent>
 
                     {/* Apple Tab */}

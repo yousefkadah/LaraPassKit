@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\MarkOnboardingStepJob;
 use App\Models\BusinessDomain;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
@@ -86,6 +87,8 @@ class EmailDomainService
             'approved_at' => now(),
             'approved_by' => $admin->id,
         ]);
+
+        MarkOnboardingStepJob::dispatch($user->id, 'email_verified');
     }
 
     /**

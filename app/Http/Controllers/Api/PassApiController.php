@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\MarkOnboardingStepJob;
 use App\Models\Pass;
 use App\Models\PassTemplate;
 use App\Services\PassLimitService;
@@ -99,6 +100,8 @@ class PassApiController extends Controller
             ],
             'images' => $template->default_images ?? [],
         ]);
+
+        MarkOnboardingStepJob::dispatch($user->id, 'first_pass');
 
         $platforms = $validated['platforms'];
 

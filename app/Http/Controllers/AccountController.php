@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SignupRequest;
 use App\Jobs\ValidateEmailDomainJob;
+use App\Jobs\MarkOnboardingStepJob;
 use App\Models\OnboardingStep;
 use App\Models\User;
 use App\Services\EmailDomainService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Gate;
 
 class AccountController extends Controller
 {
@@ -78,6 +80,8 @@ class AccountController extends Controller
     {
         $user = auth()->user();
 
+        Gate::authorize('access-account-settings');
+
         return response()->json([
             'user' => $user,
             'tier' => $user->currentTier(),
@@ -94,12 +98,18 @@ class AccountController extends Controller
     {
         $user = auth()->user();
 
+        Gate::authorize('access-account-settings');
+
         $validated = request()->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'industry' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user->update(array_filter($validated));
+
+        if (!empty($user->name) && !empty($user->industry)) {
+            MarkOnboardingStepJob::dispatch($user->id, 'user_profile');
+        }
 
         return response()->json([
             'message' => 'Account updated successfully.',

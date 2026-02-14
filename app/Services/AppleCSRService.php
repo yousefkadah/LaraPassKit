@@ -12,7 +12,7 @@ class AppleCSRService
 {
     /**
      * Generate a Certificate Signing Request (CSR) for Apple Wallet
-     * 
+     *
      * @param User $user
      * @return string PEM-formatted CSR content
      * @throws \Exception If CSR generation fails
@@ -59,7 +59,7 @@ class AppleCSRService
 
     /**
      * Download CSR as file
-     * 
+     *
      * @param string $csrContent PEM-formatted CSR
      * @return \Illuminate\Http\Response
      */
@@ -73,7 +73,7 @@ class AppleCSRService
 
     /**
      * Get instructions for uploading CSR to Apple Developer Portal
-     * 
+     *
      * @return string Markdown-formatted instructions
      */
     public function getAppleInstructions(): string

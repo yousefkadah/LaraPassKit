@@ -11,7 +11,7 @@ interface PreLaunchChecklistProps {
     hasGoogleCred: boolean;
     hasCreatedPass: boolean;
     userProfileComplete: boolean;
-    onGoLive(): void;
+    onGoLive(testedOnDevice: boolean): void;
     isLoading?: boolean;
 }
 
@@ -28,11 +28,11 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
     const [testedOnDevice, setTestedOnDevice] = useState(false);
 
     // Check all requirements
-    const allRequirementsMet = 
-        hasAppleCert && 
-        hasGoogleCred && 
-        hasCreatedPass && 
-        userProfileComplete && 
+    const allRequirementsMet =
+        hasAppleCert &&
+        hasGoogleCred &&
+        hasCreatedPass &&
+        userProfileComplete &&
         testedOnDevice;
 
     const requirements = [
@@ -179,7 +179,7 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
 
                 {/* Action Button */}
                 <Button
-                    onClick={onGoLive}
+                    onClick={() => onGoLive(testedOnDevice)}
                     disabled={!allRequirementsMet || isLoading}
                     className="w-full"
                     size="lg"

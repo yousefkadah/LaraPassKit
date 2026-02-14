@@ -51,6 +51,7 @@ const STEP_ORDER = [
 export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardProps) {
     const [isVisible, setIsVisible] = useState(true);
     const [isMinimized, setIsMinimized] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
 
     useEffect(() => {
         const dismissed = localStorage.getItem('onboarding-wizard-dismissed');
@@ -68,6 +69,20 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
         setIsVisible(false);
         onDismiss?.();
     };
+
+    useEffect(() => {
+        if (!allComplete) return;
+
+        setIsCompleting(true);
+
+        const timer = window.setTimeout(() => {
+            localStorage.setItem('onboarding-wizard-dismissed', 'true');
+            setIsVisible(false);
+            onDismiss?.();
+        }, 3000);
+
+        return () => window.clearTimeout(timer);
+    }, [allComplete, onDismiss]);
 
     if (!isVisible) return null;
 
@@ -199,10 +214,15 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
                 {/* Complete Message */}
                 {allComplete && (
                     <div className="rounded-lg bg-green-50 p-3 text-center text-sm text-green-900">
-                        <p className="font-semibold">🎉 You're all set!</p>
+                        <p className="font-semibold">🎉 Setup Complete!</p>
                         <p className="text-xs text-green-700 mt-1">
                             You're ready to start creating passes.
                         </p>
+                        {isCompleting && (
+                            <p className="text-xs text-green-700 mt-1">
+                                Closing in a moment...
+                            </p>
+                        )}
                     </div>
                 )}
             </div>

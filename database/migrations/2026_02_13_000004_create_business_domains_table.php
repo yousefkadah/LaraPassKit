@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('domain')->unique()->comment('Whitelisted business domain (e.g., stripe.com)');
             $table->timestamps();
-            
+
             // Index for email domain lookups
             $table->index('domain');
         });

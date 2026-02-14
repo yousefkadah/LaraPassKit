@@ -32,6 +32,13 @@ class User extends Authenticatable
         'approval_status',
         'approved_at',
         'approved_by',
+        'production_requested_at',
+        'production_approved_at',
+        'production_approved_by',
+        'production_rejected_at',
+        'production_rejected_reason',
+        'pre_launch_checklist',
+        'live_approved_at',
         'business_name',
         'business_address',
         'business_phone',
@@ -70,6 +77,11 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
             'two_factor_confirmed_at' => 'datetime',
             'approved_at' => 'datetime',
+            'production_requested_at' => 'datetime',
+            'production_approved_at' => 'datetime',
+            'production_rejected_at' => 'datetime',
+            'pre_launch_checklist' => 'array',
+            'live_approved_at' => 'datetime',
         ];
     }
 
@@ -111,6 +123,22 @@ class User extends Authenticatable
     public function onboardingSteps(): HasMany
     {
         return $this->hasMany(OnboardingStep::class);
+    }
+
+    /**
+     * Get the admin who approved the account.
+     */
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Get the admin who approved production tier.
+     */
+    public function productionApprovedBy()
+    {
+        return $this->belongsTo(User::class, 'production_approved_by');
     }
 
     /**

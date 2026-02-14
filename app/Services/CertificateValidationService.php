@@ -12,7 +12,7 @@ class CertificateValidationService
 {
     /**
      * Validate an uploaded Apple certificate file
-     * 
+     *
      * @param UploadedFile $file
      * @return array {
      *   'valid' => bool,
@@ -106,7 +106,7 @@ class CertificateValidationService
 
     /**
      * Validate Google credential JSON file
-     * 
+     *
      * @param UploadedFile $file
      * @return array {
      *   'valid' => bool,

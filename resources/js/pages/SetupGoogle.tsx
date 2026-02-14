@@ -59,7 +59,7 @@ export default function SetupGoogle() {
         const newCompleted = new Set(completedSteps);
         newCompleted.add(step);
         setCompletedSteps(newCompleted);
-        
+
         // Auto-advance to next step
         const nextStepIndex = STEPS.findIndex((s) => s.key === step) + 1;
         if (nextStepIndex < STEPS.length) {

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Mail\AdminProductionRequestMail;
 use App\Models\User;
 use App\Services\TierProgressionService;
 use Illuminate\Http\JsonResponse;
@@ -17,21 +16,16 @@ class ProductionApprovalController extends Controller
     public function __construct(TierProgressionService $tierService)
     {
         $this->tierService = $tierService;
-        $this->middleware('auth:sanctum');
-        $this->middleware('admin');
     }
 
     /**
      * List pending production tier requests.
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
     public function index(Request $request): JsonResponse
     {
-        $admin = Auth::user();
-        $this->authorize('viewQueue', [User::class, $admin]);
-
         $requests = User::whereNotNull('production_requested_at')
             ->whereNull('production_approved_at')
             ->whereNull('production_rejected_at')
@@ -57,14 +51,11 @@ class ProductionApprovalController extends Controller
 
     /**
      * View approved production requests.
-     * 
+     *
      * @return JsonResponse
      */
     public function approved(): JsonResponse
     {
-        $admin = Auth::user();
-        $this->authorize('viewQueue', [User::class, $admin]);
-
         $requests = User::whereNotNull('production_approved_at')
             ->paginate(15);
 
@@ -74,7 +65,7 @@ class ProductionApprovalController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'approved_at' => $user->production_approved_at,
-                'approved_by' => $user->approvedBy?->name,
+                'approved_by' => $user->productionApprovedBy?->name,
                 'current_tier' => $user->tier,
             ]),
             'pagination' => [
@@ -88,14 +79,11 @@ class ProductionApprovalController extends Controller
 
     /**
      * View rejected production requests.
-     * 
+     *
      * @return JsonResponse
      */
     public function rejected(): JsonResponse
     {
-        $admin = Auth::user();
-        $this->authorize('viewQueue', [User::class, $admin]);
-
         $requests = User::whereNotNull('production_rejected_at')
             ->paginate(15);
 
@@ -119,7 +107,7 @@ class ProductionApprovalController extends Controller
 
     /**
      * Request production tier upgrade.
-     * 
+     *
      * @return JsonResponse
      */
     public function requestProduction(): JsonResponse
@@ -142,10 +130,10 @@ class ProductionApprovalController extends Controller
 
     /**
      * Request to go live (pre-launch checklist validation).
-     * 
+     *
      * @return JsonResponse
      */
-    public function requestLive(): JsonResponse
+    public function requestLive(Request $request): JsonResponse
     {
         $user = Auth::user();
 
@@ -155,7 +143,15 @@ class ProductionApprovalController extends Controller
             ], 422);
         }
 
+        $request->validate([
+            'tested_on_device' => 'boolean',
+        ]);
+
         try {
+            if ($request->boolean('tested_on_device')) {
+                $this->tierService->markChecklistItem($user, 'tested_on_device', true);
+            }
+
             $valid = $this->tierService->requestLive($user);
 
             if (!$valid) {
@@ -178,7 +174,7 @@ class ProductionApprovalController extends Controller
 
     /**
      * Advance user to live tier.
-     * 
+     *
      * @return JsonResponse
      */
     public function goLive(): JsonResponse
@@ -242,14 +238,16 @@ class ProductionApprovalController extends Controller
 
         return $requirements;
     }
-     * 
+
+    /**
+     * Approve a production tier request.
+     *
      * @param User $user
      * @return JsonResponse
      */
     public function approve(User $user): JsonResponse
     {
         $admin = Auth::user();
-        $this->authorize('approve', [User::class, $admin, $user]);
 
         try {
             $this->tierService->approveProduction($user, $admin);
@@ -273,7 +271,7 @@ class ProductionApprovalController extends Controller
 
     /**
      * Reject a production tier request.
-     * 
+     *
      * @param Request $request
      * @param User $user
      * @return JsonResponse
@@ -281,7 +279,6 @@ class ProductionApprovalController extends Controller
     public function reject(Request $request, User $user): JsonResponse
     {
         $admin = Auth::user();
-        $this->authorize('reject', [User::class, $admin, $user]);
 
         $request->validate([
             'reason' => 'required|string|max:500',

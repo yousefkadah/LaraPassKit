@@ -18,15 +18,15 @@ return new class extends Migration
             $table->text('password')->encrypted()->comment('Encrypted certificate password');
             $table->timestamp('valid_from')->comment('Certificate validity start date');
             $table->timestamp('expiry_date')->comment('Certificate expiration date');
-            
+
             // Expiry notification tracking
             $table->boolean('expiry_notified_30_days')->default(false);
             $table->boolean('expiry_notified_7_days')->default(false);
             $table->boolean('expiry_notified_0_days')->default(false);
-            
+
             $table->softDeletes();
             $table->timestamps();
-            
+
             // Indexes
             $table->index('user_id');
             $table->index('expiry_date');

@@ -16,12 +16,12 @@ return new class extends Migration
             $table->enum('region', ['EU', 'US'])->default('US')->after('email');
             $table->string('tier')->default('Email_Verified')->after('region');
             $table->string('industry')->nullable()->after('tier');
-            
+
             // Approval Workflow
             $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('pending')->after('industry');
             $table->timestamp('approved_at')->nullable()->after('approval_status');
             $table->foreignId('approved_by')->nullable()->references('id')->on('users')->after('approved_at');
-            
+
             // Indexes for filtering
             $table->index('region');
             $table->index('approval_status');

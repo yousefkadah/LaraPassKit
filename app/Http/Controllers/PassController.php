@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Pass\StorePassRequest;
 use App\Http\Requests\Pass\UpdatePassRequest;
+use App\Jobs\MarkOnboardingStepJob;
 use App\Models\Pass;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -74,6 +75,8 @@ class PassController extends Controller
             'serial_number' => \Illuminate\Support\Str::uuid()->toString(),
             'status' => 'active',
         ]);
+
+        MarkOnboardingStepJob::dispatch($request->user()->id, 'first_pass');
 
         return to_route('passes.show', $pass)->with('success', 'Pass created successfully.');
     }
