@@ -18,8 +18,8 @@ class AdminApprovalTest extends TestCase
      */
     public function test_admin_can_view_pending_approvals(): void
     {
-        $admin = User::factory()->admin()->create();
-        $pending = User::factory()->pending()->count(3)->create();
+        $admin = User::factory()->admin()->create(['region' => 'US']);
+        $pending = User::factory()->pending()->count(3)->create(['region' => 'US']);
 
         $response = $this->actingAs($admin)->getJson('/admin/approvals');
 
@@ -106,8 +106,8 @@ class AdminApprovalTest extends TestCase
      */
     public function test_admin_can_view_approved_accounts(): void
     {
-        $admin = User::factory()->admin()->create();
-        User::factory()->approved()->count(5)->create();
+        $admin = User::factory()->admin()->create(['region' => 'US']);
+        User::factory()->approved()->count(5)->create(['region' => 'US']);
 
         $response = $this->actingAs($admin)->getJson('/admin/approvals/approved');
 
@@ -120,8 +120,8 @@ class AdminApprovalTest extends TestCase
      */
     public function test_admin_can_view_rejected_accounts(): void
     {
-        $admin = User::factory()->admin()->create();
-        User::factory()->create(['approval_status' => 'rejected'])->count(2);
+        $admin = User::factory()->admin()->create(['region' => 'US']);
+        User::factory()->count(2)->create(['approval_status' => 'rejected', 'region' => 'US']);
 
         $response = $this->actingAs($admin)->getJson('/admin/approvals/rejected');
 

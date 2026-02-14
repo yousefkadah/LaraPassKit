@@ -19,6 +19,7 @@ class TierGatesTest extends TestCase
     {
         $user = User::factory()->approved()->create([
             'tier' => 'Email_Verified',
+            'region' => 'US',
         ]);
 
         $response = $this->actingAs($user)->postJson('/api/tier/request-production');
@@ -33,6 +34,7 @@ class TierGatesTest extends TestCase
     {
         $user = User::factory()->pending()->create([
             'tier' => 'Email_Verified',
+            'region' => 'US',
         ]);
 
         $response = $this->actingAs($user)->getJson('/api/account');
@@ -47,6 +49,7 @@ class TierGatesTest extends TestCase
     {
         $user = User::factory()->approved()->create([
             'tier' => 'Verified_And_Configured',
+            'region' => 'US',
         ]);
 
         AppleCertificate::factory()->create(['user_id' => $user->id]);
@@ -64,6 +67,7 @@ class TierGatesTest extends TestCase
     {
         $user = User::factory()->approved()->create([
             'tier' => 'Verified_And_Configured',
+            'region' => 'US',
         ]);
 
         $response = $this->actingAs($user)->postJson('/api/tier/go-live');

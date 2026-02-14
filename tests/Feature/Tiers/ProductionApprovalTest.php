@@ -27,6 +27,7 @@ class ProductionApprovalTest extends TestCase
         $admin = User::factory()->admin()->create();
         $user = User::factory()->approved()->create([
             'tier' => 'Verified_And_Configured',
+            'region' => 'US',
         ]);
 
         AppleCertificate::factory()->create(['user_id' => $user->id]);
@@ -53,6 +54,7 @@ class ProductionApprovalTest extends TestCase
         $admin = User::factory()->admin()->create();
         $user = User::factory()->approved()->create([
             'tier' => 'Verified_And_Configured',
+            'region' => 'US',
             'production_requested_at' => now(),
         ]);
 
@@ -81,6 +83,7 @@ class ProductionApprovalTest extends TestCase
         $admin = User::factory()->admin()->create();
         $user = User::factory()->approved()->create([
             'tier' => 'Verified_And_Configured',
+            'region' => 'US',
             'production_requested_at' => now(),
         ]);
 

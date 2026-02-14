@@ -17,6 +17,7 @@ class AccountSettingsTest extends TestCase
         $user = User::factory()->approved()->create([
             'tier' => 'Email_Verified',
             'approval_status' => 'approved',
+            'region' => 'US',
         ]);
 
         $response = $this->actingAs($user)->getJson('/api/account');
@@ -39,6 +40,10 @@ class AccountSettingsTest extends TestCase
         $user = User::factory()->approved()->create([
             'tier' => 'Email_Verified',
             'approval_status' => 'approved',
+            'region' => 'US',
+        ]);
+        
+        $user->update([
             'name' => null,
             'industry' => null,
         ]);

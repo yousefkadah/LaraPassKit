@@ -117,6 +117,8 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_admin' => true,
+            'approval_status' => 'approved',
+            'approved_at' => now(),
         ]);
     }
 }
