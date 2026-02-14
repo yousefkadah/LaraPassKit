@@ -77,7 +77,7 @@ class CertificateRenewalTest extends TestCase
 
     /**
      * Test new cert upload creates fresh record (not updates existing).
-     * 
+     *
      * Note: This test belongs in AppleCertificateUploadTest but is here
      * to verify renewal flow behavior when a new cert is uploaded.
      */
@@ -88,7 +88,7 @@ class CertificateRenewalTest extends TestCase
         $oldCertId = $this->certificate->id;
 
         $certContent = $this->getValidAppleCertificatePem();
-        
+
         // Use .cer extension since validation requires mimes:cer,pem
         $file = UploadedFile::fromString(
             $certContent,
@@ -110,7 +110,7 @@ class CertificateRenewalTest extends TestCase
 
         $this->assertNotNull($newCert);
         $this->assertNotEquals($oldCertId, $newCert->id);
-        
+
         // Verify old certificate still exists (not replaced)
         $this->assertDatabaseHas('apple_certificates', [
             'id' => $oldCertId,
