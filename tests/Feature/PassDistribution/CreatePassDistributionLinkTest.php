@@ -16,7 +16,7 @@ class CreatePassDistributionLinkTest extends TestCase
      */
     public function test_authenticated_user_can_create_distribution_link()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
 
         $this->actingAs($user)
@@ -40,7 +40,7 @@ class CreatePassDistributionLinkTest extends TestCase
      */
     public function test_created_link_has_active_status()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
 
         $response = $this->actingAs($user)
@@ -55,7 +55,7 @@ class CreatePassDistributionLinkTest extends TestCase
      */
     public function test_slug_is_generated_on_creation()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
 
         $response = $this->actingAs($user)
@@ -80,8 +80,8 @@ class CreatePassDistributionLinkTest extends TestCase
      */
     public function test_unauthorized_user_cannot_create_link()
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::factory()->forRegionUS()->create();
+        $user2 = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user1)->create();
 
         $this->actingAs($user2)
@@ -94,7 +94,7 @@ class CreatePassDistributionLinkTest extends TestCase
      */
     public function test_unauthenticated_user_cannot_create_link()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
 
         $this->postJson(route('passes.distribution-links.store', $pass))

@@ -17,7 +17,7 @@ class LinkStatusValidationTest extends TestCase
      */
     public function test_invalid_status_returns_422()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
         $link = PassDistributionLink::factory()->for($pass)->create();
 
@@ -33,7 +33,7 @@ class LinkStatusValidationTest extends TestCase
      */
     public function test_only_valid_statuses_allowed()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
         $link = PassDistributionLink::factory()->for($pass)->create();
 
@@ -79,8 +79,8 @@ class LinkStatusValidationTest extends TestCase
      */
     public function test_unauthorized_user_cannot_update_link()
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $user1 = User::factory()->forRegionUS()->create();
+        $user2 = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user1)->create();
         $link = PassDistributionLink::factory()->for($pass)->create();
 

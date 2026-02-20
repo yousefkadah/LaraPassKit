@@ -6,7 +6,11 @@ import { AlertCircle, ArrowRight, Lock } from 'lucide-react';
 import InputError from '@/components/input-error';
 
 interface TierProgressionCardProps {
-    currentTier: 'Email_Verified' | 'Verified_And_Configured' | 'Production' | 'Live';
+    currentTier:
+        | 'Email_Verified'
+        | 'Verified_And_Configured'
+        | 'Production'
+        | 'Live';
     hasAppleCert: boolean;
     hasGoogleCred: boolean;
     onRequestProduction(): void;
@@ -30,10 +34,10 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
     ];
 
     const tierNames = {
-        'Email_Verified': 'Email Verified',
-        'Verified_And_Configured': 'Verified & Configured',
-        'Production': 'Production',
-        'Live': 'Live',
+        Email_Verified: 'Email Verified',
+        Verified_And_Configured: 'Verified & Configured',
+        Production: 'Production',
+        Live: 'Live',
     };
 
     const currentIndex = tierSequence.indexOf(currentTier);
@@ -47,15 +51,15 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
 
     if (currentTier === 'Live') {
         return (
-            <Card className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+            <Card className="border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 p-6">
                 <div className="flex items-center gap-4">
                     <div className="flex-1">
                         <h3 className="text-lg font-bold text-green-900">
                             🎉 Account is LIVE
                         </h3>
-                        <p className="text-sm text-green-700 mt-1">
-                            You're able to distribute passes at unlimited scale. Monitor your
-                            activity in the analytics dashboard.
+                        <p className="mt-1 text-sm text-green-700">
+                            You're able to distribute passes at unlimited scale.
+                            Monitor your activity in the analytics dashboard.
                         </p>
                     </div>
                     <div className="text-4xl">✨</div>
@@ -65,21 +69,26 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
     }
 
     return (
-        <Card className="p-6 space-y-4">
+        <Card className="space-y-4 p-6">
             <div>
                 <h3 className="text-lg font-semibold text-foreground">
                     Account Tier Progression
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1">
-                    You're currently at <span className="font-semibold">{tierNames[currentTier]}</span>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    You're currently at{' '}
+                    <span className="font-semibold">
+                        {tierNames[currentTier]}
+                    </span>
                 </p>
             </div>
 
             {/* Tier Status */}
-            <div className="flex items-center justify-between py-4 px-3 rounded-lg bg-gray-50">
+            <div className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-4">
                 <div>
-                    <p className="text-xs text-muted-foreground">Current Tier</p>
-                    <p className="text-sm font-semibold text-foreground mt-1">
+                    <p className="text-xs text-muted-foreground">
+                        Current Tier
+                    </p>
+                    <p className="mt-1 text-sm font-semibold text-foreground">
                         {tierNames[currentTier]}
                     </p>
                 </div>
@@ -87,8 +96,10 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
                     <>
                         <ArrowRight className="h-4 w-4 text-gray-400" />
                         <div>
-                            <p className="text-xs text-muted-foreground">Next Tier</p>
-                            <p className="text-sm font-semibold text-foreground mt-1">
+                            <p className="text-xs text-muted-foreground">
+                                Next Tier
+                            </p>
+                            <p className="mt-1 text-sm font-semibold text-foreground">
                                 {tierNames[nextTier as keyof typeof tierNames]}
                             </p>
                         </div>
@@ -102,12 +113,17 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
                     <p className="text-sm font-medium text-foreground">
                         Requirements for Verified & Configured:
                     </p>
-                    <ul className="text-sm space-y-1 text-muted-foreground">
-                        <li className={`flex items-center gap-2 ${hasAppleCert ? 'text-green-600' : ''}`}>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li
+                            className={`flex items-center gap-2 ${hasAppleCert ? 'text-green-600' : ''}`}
+                        >
                             {hasAppleCert ? '✓' : '○'} Apple Wallet Certificate
                         </li>
-                        <li className={`flex items-center gap-2 ${hasGoogleCred ? 'text-green-600' : ''}`}>
-                            {hasGoogleCred ? '✓' : '○'} Google Wallet Credentials
+                        <li
+                            className={`flex items-center gap-2 ${hasGoogleCred ? 'text-green-600' : ''}`}
+                        >
+                            {hasGoogleCred ? '✓' : '○'} Google Wallet
+                            Credentials
                         </li>
                     </ul>
                 </div>
@@ -119,8 +135,9 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Ready for Production?</AlertTitle>
                         <AlertDescription>
-                            Your account is configured. You can now request Production tier status
-                            for higher pass distribution limits.
+                            Your account is configured. You can now request
+                            Production tier status for higher pass distribution
+                            limits.
                         </AlertDescription>
                     </Alert>
 
@@ -129,7 +146,9 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
                         disabled={!canRequestProduction || isLoading}
                         className="w-full"
                     >
-                        {isLoading ? 'Submitting...' : 'Request Production Tier'}
+                        {isLoading
+                            ? 'Submitting...'
+                            : 'Request Production Tier'}
                     </Button>
 
                     {error && <InputError message={error} />}
@@ -141,8 +160,8 @@ const TierProgressionCard: React.FC<TierProgressionCardProps> = ({
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Production Active</AlertTitle>
                     <AlertDescription>
-                        Your account is in Production tier. Complete the pre-launch checklist
-                        to go live.
+                        Your account is in Production tier. Complete the
+                        pre-launch checklist to go live.
                     </AlertDescription>
                 </Alert>
             )}

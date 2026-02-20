@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Check, Lock, AlertCircle, Arrow Right } from 'lucide-react';
+import { Check, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import React from 'react';
 
 interface TierRoadmapProps {

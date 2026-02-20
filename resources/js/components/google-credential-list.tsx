@@ -36,12 +36,8 @@ export default function GoogleCredentialList({
                 <h3 className="text-lg font-semibold text-foreground">
                     Google Wallet Credentials
                 </h3>
-                <Button
-                    onClick={onAddCredential}
-                    size="sm"
-                    variant="default"
-                >
-                    <Plus className="h-4 w-4 mr-2" />
+                <Button onClick={onAddCredential} size="sm" variant="default">
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Credential
                 </Button>
             </div>
@@ -55,14 +51,15 @@ export default function GoogleCredentialList({
                                 issuerId={cred.issuer_id}
                                 projectId={cred.project_id}
                                 uploadDate={new Date().toISOString()} // Fallback - real date from DB
-                                expiryDate={
-                                    new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-                                } // Fallback - Google credentials don't expire like Apple certs
+                                expiryDate={new Date(
+                                    Date.now() + 365 * 24 * 60 * 60 * 1000,
+                                ).toISOString()} // Fallback - Google credentials don't expire like Apple certs
                                 onRenew={() => onRotate?.(cred.id)}
                                 onDelete={() => onDelete?.(cred.id)}
                             />
-                            <p className="text-xs text-muted-foreground ml-12">
-                                Last rotated: {formatLastRotated(cred.last_rotated_at)}
+                            <p className="ml-12 text-xs text-muted-foreground">
+                                Last rotated:{' '}
+                                {formatLastRotated(cred.last_rotated_at)}
                             </p>
                         </div>
                     ))}
@@ -83,13 +80,16 @@ export default function GoogleCredentialList({
             )}
 
             <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
-                <p className="font-semibold">Need help setting up Google Wallet?</p>
+                <p className="font-semibold">
+                    Need help setting up Google Wallet?
+                </p>
                 <p className="mt-1">
                     Follow our{' '}
                     <Button variant="link" className="h-auto p-0 text-blue-700">
                         step-by-step guide
-                    </Button>
-                    {' '}to create a Google Cloud project and upload your service account credentials.
+                    </Button>{' '}
+                    to create a Google Cloud project and upload your service
+                    account credentials.
                 </p>
             </div>
         </div>

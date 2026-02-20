@@ -6,6 +6,7 @@ use App\Models\AppleCertificate;
 use App\Models\GoogleCredential;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class TierGatesTest extends TestCase
@@ -52,10 +53,15 @@ class TierGatesTest extends TestCase
             'region' => 'US',
         ]);
 
+        $this->actingAs($user);
+
         AppleCertificate::factory()->create(['user_id' => $user->id]);
         GoogleCredential::factory()->create(['user_id' => $user->id]);
 
-        $response = $this->actingAs($user)->postJson('/api/tier/request-production');
+        // Fake mail to avoid missing view errors in test environment
+        Mail::fake();
+
+        $response = $this->postJson('/api/tier/request-production');
 
         $response->assertSuccessful();
     }

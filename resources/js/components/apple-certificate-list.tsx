@@ -28,12 +28,8 @@ export default function AppleCertificateList({
                 <h3 className="text-lg font-semibold text-foreground">
                     Apple Wallet Certificates
                 </h3>
-                <Button
-                    onClick={onAddCertificate}
-                    size="sm"
-                    variant="default"
-                >
-                    <Plus className="h-4 w-4 mr-2" />
+                <Button onClick={onAddCertificate} size="sm" variant="default">
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Certificate
                 </Button>
             </div>
@@ -68,13 +64,16 @@ export default function AppleCertificateList({
             )}
 
             <div className="rounded-lg bg-blue-50 p-4 text-sm text-blue-800">
-                <p className="font-semibold">Need help setting up Apple Wallet?</p>
+                <p className="font-semibold">
+                    Need help setting up Apple Wallet?
+                </p>
                 <p className="mt-1">
                     Follow our{' '}
                     <Button variant="link" className="h-auto p-0 text-blue-700">
                         step-by-step guide
-                    </Button>
-                    {' '}to generate a Certificate Signing Request (CSR) and upload your certificate.
+                    </Button>{' '}
+                    to generate a Certificate Signing Request (CSR) and upload
+                    your certificate.
                 </p>
             </div>
         </div>

@@ -25,7 +25,7 @@ export const INDUSTRY_OPTIONS = [
     { value: 'insurance', label: 'Insurance' },
 ] as const;
 
-export type IndustryValue = typeof INDUSTRY_OPTIONS[number]['value'];
+export type IndustryValue = (typeof INDUSTRY_OPTIONS)[number]['value'];
 
 /**
  * Get industry label by value

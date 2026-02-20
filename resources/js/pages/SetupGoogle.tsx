@@ -5,9 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import InputError from '@/components/input-error';
-import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import AppLayout from '@/layouts/app-layout';
 
-type SetupStep = 'gcp-project' | 'wallet-api' | 'service-account' | 'download-key' | 'upload-json';
+type SetupStep =
+    | 'gcp-project'
+    | 'wallet-api'
+    | 'service-account'
+    | 'download-key'
+    | 'upload-json';
 
 const STEPS = [
     {
@@ -44,7 +49,9 @@ const STEPS = [
 
 export default function SetupGoogle() {
     const [currentStep, setCurrentStep] = useState<SetupStep>('gcp-project');
-    const [completedSteps, setCompletedSteps] = useState<Set<SetupStep>>(new Set());
+    const [completedSteps, setCompletedSteps] = useState<Set<SetupStep>>(
+        new Set(),
+    );
     const [isLoading, setIsLoading] = useState(false);
     const [uploadError, setUploadError] = useState('');
     const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -87,7 +94,7 @@ export default function SetupGoogle() {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: formData,
             });
@@ -98,7 +105,9 @@ export default function SetupGoogle() {
                 if (Array.isArray(data.errors)) {
                     setUploadError(data.errors.join(', '));
                 } else {
-                    setUploadError(data.message || 'Failed to upload credentials');
+                    setUploadError(
+                        data.message || 'Failed to upload credentials',
+                    );
                 }
             } else {
                 setUploadSuccess(true);
@@ -118,17 +127,18 @@ export default function SetupGoogle() {
     const currentStepIndex = STEPS.findIndex((s) => s.key === currentStep);
 
     return (
-        <AuthenticatedLayout>
+        <AppLayout>
             <Head title="Google Wallet Setup" />
 
-            <div className="mx-auto max-w-3xl space-y-6 py- px-4">
+            <div className="py- mx-auto max-w-3xl space-y-6 px-4">
                 {/* Page Header */}
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold text-foreground">
                         Google Wallet Setup
                     </h1>
                     <p className="text-muted-foreground">
-                        Follow these 5 steps to enable Google Wallet for your account
+                        Follow these 5 steps to enable Google Wallet for your
+                        account
                     </p>
                 </div>
 
@@ -143,12 +153,12 @@ export default function SetupGoogle() {
                             <div
                                 key={step.key}
                                 onClick={() => setCurrentStep(stepKey)}
-                                className={`cursor-pointer rounded-lg px-4 py-3 border transition-colors ${
+                                className={`cursor-pointer rounded-lg border px-4 py-3 transition-colors ${
                                     isActive
-                                        ? 'bg-blue-50 border-blue-200'
+                                        ? 'border-blue-200 bg-blue-50'
                                         : isCompleted
-                                          ? 'bg-green-50 border-green-200'
-                                          : 'bg-gray-50 border-gray-200'
+                                          ? 'border-green-200 bg-green-50'
+                                          : 'border-gray-200 bg-gray-50'
                                 }`}
                             >
                                 <div className="flex items-start gap-3">
@@ -161,7 +171,11 @@ export default function SetupGoogle() {
                                                   : 'bg-gray-300 text-gray-600'
                                         }`}
                                     >
-                                        {isCompleted ? <CheckCircle className="h-5 w-5" /> : step.number}
+                                        {isCompleted ? (
+                                            <CheckCircle className="h-5 w-5" />
+                                        ) : (
+                                            step.number
+                                        )}
                                     </div>
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2">
@@ -173,7 +187,7 @@ export default function SetupGoogle() {
                                             </span>
                                         </div>
                                         {isActive && (
-                                            <p className="text-xs text-blue-600 mt-1">
+                                            <p className="mt-1 text-xs text-blue-600">
                                                 Currently working on this step
                                             </p>
                                         )}
@@ -192,33 +206,42 @@ export default function SetupGoogle() {
                                 Create a Google Cloud Project
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                                You'll need a Google Cloud Project to create wallet credentials.
+                                You'll need a Google Cloud Project to create
+                                wallet credentials.
                             </p>
                             <Alert>
                                 <AlertCircle className="h-4 w-4" />
                                 <AlertTitle>Free Tier</AlertTitle>
                                 <AlertDescription>
-                                    Google Cloud has a free tier that covers most use cases.
+                                    Google Cloud has a free tier that covers
+                                    most use cases.
                                 </AlertDescription>
                             </Alert>
-                            <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
+                            <ol className="list-inside list-decimal space-y-2 text-sm text-muted-foreground">
                                 <li>
                                     <a
                                         href="https://console.cloud.google.com/projectcreate"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 underline"
+                                        className="inline-flex items-center gap-1 text-blue-600 underline hover:text-blue-700"
                                     >
                                         Go to Google Cloud Console
                                         <ExternalLink className="h-3 w-3" />
                                     </a>
                                 </li>
                                 <li>Click "Create Project"</li>
-                                <li>Enter project name (e.g., "PassKit Wallet")</li>
-                                <li>Click "Create" and wait for the project to be created</li>
+                                <li>
+                                    Enter project name (e.g., "PassKit Wallet")
+                                </li>
+                                <li>
+                                    Click "Create" and wait for the project to
+                                    be created
+                                </li>
                             </ol>
                             <Button
-                                onClick={() => handleStepComplete('gcp-project')}
+                                onClick={() =>
+                                    handleStepComplete('gcp-project')
+                                }
                                 className="w-full"
                             >
                                 I've Created the Project
@@ -232,22 +255,28 @@ export default function SetupGoogle() {
                                 Enable Google Wallet API
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                                Enable the Google Wallet API in your Google Cloud Project.
+                                Enable the Google Wallet API in your Google
+                                Cloud Project.
                             </p>
-                            <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
+                            <ol className="list-inside list-decimal space-y-2 text-sm text-muted-foreground">
                                 <li>
                                     <a
                                         href="https://console.cloud.google.com/marketplace/product/google/walletobjects.googleapis.com"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 underline"
+                                        className="inline-flex items-center gap-1 text-blue-600 underline hover:text-blue-700"
                                     >
                                         Go to API Marketplace
                                         <ExternalLink className="h-3 w-3" />
                                     </a>
                                 </li>
-                                <li>Make sure your project is selected at the top</li>
-                                <li>Click "Enable" for the Google Wallet API</li>
+                                <li>
+                                    Make sure your project is selected at the
+                                    top
+                                </li>
+                                <li>
+                                    Click "Enable" for the Google Wallet API
+                                </li>
                                 <li>Wait for the API to be enabled</li>
                             </ol>
                             <Button
@@ -265,15 +294,16 @@ export default function SetupGoogle() {
                                 Create a Service Account
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                                Create a service account to authenticate with Google Wallet API.
+                                Create a service account to authenticate with
+                                Google Wallet API.
                             </p>
-                            <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
+                            <ol className="list-inside list-decimal space-y-2 text-sm text-muted-foreground">
                                 <li>
                                     <a
                                         href="https://console.cloud.google.com/iam-admin/serviceaccounts"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 underline"
+                                        className="inline-flex items-center gap-1 text-blue-600 underline hover:text-blue-700"
                                     >
                                         Go to Service Accounts
                                         <ExternalLink className="h-3 w-3" />
@@ -282,11 +312,16 @@ export default function SetupGoogle() {
                                 <li>Click "Create Service Account"</li>
                                 <li>Name it "passkit" (or similar)</li>
                                 <li>Click "Create and Continue"</li>
-                                <li>Grant it the role: "Editor" (or more specific "Service Account Token Creator")</li>
+                                <li>
+                                    Grant it the role: "Editor" (or more
+                                    specific "Service Account Token Creator")
+                                </li>
                                 <li>Click "Continue" and then "Done"</li>
                             </ol>
                             <Button
-                                onClick={() => handleStepComplete('service-account')}
+                                onClick={() =>
+                                    handleStepComplete('service-account')
+                                }
                                 className="w-full"
                             >
                                 I've Created the Service Account
@@ -300,29 +335,39 @@ export default function SetupGoogle() {
                                 Download JSON Key
                             </h3>
                             <p className="text-sm text-muted-foreground">
-                                Generate and download the JSON key for your service account.
+                                Generate and download the JSON key for your
+                                service account.
                             </p>
-                            <ol className="text-sm space-y-2 list-decimal list-inside text-muted-foreground">
+                            <ol className="list-inside list-decimal space-y-2 text-sm text-muted-foreground">
                                 <li>
                                     <a
                                         href="https://console.cloud.google.com/iam-admin/serviceaccounts"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 underline"
+                                        className="inline-flex items-center gap-1 text-blue-600 underline hover:text-blue-700"
                                     >
                                         Go back to Service Accounts
                                         <ExternalLink className="h-3 w-3" />
                                     </a>
                                 </li>
-                                <li>Click on the "passkit" service account email</li>
+                                <li>
+                                    Click on the "passkit" service account email
+                                </li>
                                 <li>Go to the "Keys" tab</li>
                                 <li>Click "Add Key" → "Create new key"</li>
                                 <li>Choose "JSON"</li>
-                                <li>Click "Create" - the JSON file will download automatically</li>
-                                <li>Keep this file safe - you'll upload it next</li>
+                                <li>
+                                    Click "Create" - the JSON file will download
+                                    automatically
+                                </li>
+                                <li>
+                                    Keep this file safe - you'll upload it next
+                                </li>
                             </ol>
                             <Button
-                                onClick={() => handleStepComplete('download-key')}
+                                onClick={() =>
+                                    handleStepComplete('download-key')
+                                }
                                 className="w-full"
                             >
                                 I've Downloaded the JSON Key
@@ -337,15 +382,17 @@ export default function SetupGoogle() {
                             </h3>
                             {uploadSuccess && uploadedCred ? (
                                 <div className="space-y-4">
-                                    <div className="rounded-lg bg-green-50 p-4 border border-green-200">
+                                    <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                         <div className="flex items-start gap-3">
-                                            <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                                            <CheckCircle className="mt-0.5 h-6 w-6 flex-shrink-0 text-green-600" />
                                             <div>
                                                 <h4 className="font-semibold text-green-900">
-                                                    Credentials Uploaded Successfully! 🎉
+                                                    Credentials Uploaded
+                                                    Successfully! 🎉
                                                 </h4>
-                                                <p className="text-sm text-green-700 mt-1">
-                                                    Your Google Wallet credentials are now active.
+                                                <p className="mt-1 text-sm text-green-700">
+                                                    Your Google Wallet
+                                                    credentials are now active.
                                                 </p>
                                             </div>
                                         </div>
@@ -353,14 +400,18 @@ export default function SetupGoogle() {
 
                                     <div className="grid gap-3">
                                         <div className="rounded border p-3">
-                                            <p className="text-xs text-muted-foreground">Issuer ID</p>
-                                            <p className="font-mono text-sm mt-1">
+                                            <p className="text-xs text-muted-foreground">
+                                                Issuer ID
+                                            </p>
+                                            <p className="mt-1 font-mono text-sm">
                                                 {uploadedCred.issuer_id}
                                             </p>
                                         </div>
                                         <div className="rounded border p-3">
-                                            <p className="text-xs text-muted-foreground">Project ID</p>
-                                            <p className="font-mono text-sm mt-1">
+                                            <p className="text-xs text-muted-foreground">
+                                                Project ID
+                                            </p>
+                                            <p className="mt-1 font-mono text-sm">
                                                 {uploadedCred.project_id}
                                             </p>
                                         </div>
@@ -368,7 +419,9 @@ export default function SetupGoogle() {
 
                                     <div className="flex gap-2">
                                         <Button
-                                            onClick={() => window.history.back()}
+                                            onClick={() =>
+                                                window.history.back()
+                                            }
                                             className="flex-1"
                                         >
                                             Done
@@ -376,27 +429,30 @@ export default function SetupGoogle() {
                                     </div>
                                 </div>
                             ) : (
-                                <form onSubmit={handleUploadJSON} className="space-y-4">
+                                <form
+                                    onSubmit={handleUploadJSON}
+                                    className="space-y-4"
+                                >
                                     <p className="text-sm text-muted-foreground">
-                                        Select the JSON key file you downloaded from Google Cloud.
+                                        Select the JSON key file you downloaded
+                                        from Google Cloud.
                                     </p>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-foreground mb-2">
+                                        <label className="mb-2 block text-sm font-medium text-foreground">
                                             Upload JSON Credentials File
                                         </label>
                                         <input
                                             type="file"
                                             accept=".json"
-                                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            onChange={(e) =>
+                                                setSelectedFile(
+                                                    e.target.files?.[0] || null,
+                                                )
+                                            }
                                             disabled={isLoading}
                                             required
-                                            className="block w-full text-sm text-gray-500
-                                              file:mr-4 file:py-2 file:px-4
-                                              file:rounded-full file:border-0
-                                              file:text-sm file:font-semibold
-                                              file:bg-blue-50 file:text-blue-700
-                                              hover:file:bg-blue-100"
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
                                         />
                                     </div>
                                     {selectedFile && (
@@ -414,8 +470,12 @@ export default function SetupGoogle() {
                                         disabled={isLoading || !selectedFile}
                                         className="w-full"
                                     >
-                                        {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                                        {isLoading ? 'Uploading...' : 'Upload & Complete Setup'}
+                                        {isLoading && (
+                                            <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                        )}
+                                        {isLoading
+                                            ? 'Uploading...'
+                                            : 'Upload & Complete Setup'}
                                     </Button>
                                 </form>
                             )}
@@ -423,6 +483,6 @@ export default function SetupGoogle() {
                     )}
                 </Card>
             </div>
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }

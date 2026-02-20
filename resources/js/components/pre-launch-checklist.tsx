@@ -66,9 +66,10 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
 
     if (tier !== 'Production') {
         return (
-            <div className="rounded-lg bg-gray-50 p-4 border border-gray-200">
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                 <p className="text-sm text-gray-600">
-                    Pre-launch checklist is only available for Production tier accounts.
+                    Pre-launch checklist is only available for Production tier
+                    accounts.
                 </p>
             </div>
         );
@@ -81,8 +82,9 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
                     <h3 className="text-lg font-semibold text-foreground">
                         Pre-Launch Checklist
                     </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Complete all requirements below to go live with your PassKit application.
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        Complete all requirements below to go live with your
+                        PassKit application.
                     </p>
                 </div>
 
@@ -91,10 +93,10 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
                     {requirements.map((req, idx) => (
                         <div
                             key={idx}
-                            className={`flex items-center gap-3 p-3 rounded-lg border ${
+                            className={`flex items-center gap-3 rounded-lg border p-3 ${
                                 req.met
-                                    ? 'bg-green-50 border-green-200'
-                                    : 'bg-gray-50 border-gray-200'
+                                    ? 'border-green-200 bg-green-50'
+                                    : 'border-gray-200 bg-gray-50'
                             }`}
                         >
                             <div className="flex-shrink-0">
@@ -106,34 +108,45 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
                             </div>
 
                             {req.manual ? (
-                                <label className="flex items-center gap-3 flex-1 cursor-pointer">
+                                <label className="flex flex-1 cursor-pointer items-center gap-3">
                                     <div className="flex-1">
-                                        <p className={`text-sm font-medium ${
-                                            req.met ? 'text-green-900' : 'text-foreground'
-                                        }`}>
+                                        <p
+                                            className={`text-sm font-medium ${
+                                                req.met
+                                                    ? 'text-green-900'
+                                                    : 'text-foreground'
+                                            }`}
+                                        >
                                             {req.name}
                                         </p>
-                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
                                             Manual verification required
                                         </p>
                                     </div>
                                     <input
                                         type="checkbox"
                                         checked={testedOnDevice}
-                                        onChange={(e) => setTestedOnDevice(e.target.checked)}
+                                        onChange={(e) =>
+                                            setTestedOnDevice(e.target.checked)
+                                        }
                                         className="h-4 w-4"
                                     />
                                 </label>
                             ) : (
                                 <div className="flex-1">
-                                    <p className={`text-sm font-medium ${
-                                        req.met ? 'text-green-900' : 'text-foreground'
-                                    }`}>
+                                    <p
+                                        className={`text-sm font-medium ${
+                                            req.met
+                                                ? 'text-green-900'
+                                                : 'text-foreground'
+                                        }`}
+                                    >
                                         {req.name}
                                     </p>
                                     {!req.met && (
-                                        <p className="text-xs text-muted-foreground mt-0.5">
-                                            Complete this step in your account settings
+                                        <p className="mt-0.5 text-xs text-muted-foreground">
+                                            Complete this step in your account
+                                            settings
                                         </p>
                                     )}
                                 </div>
@@ -143,34 +156,42 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
                 </div>
 
                 {/* Summary */}
-                <div className={`rounded-lg p-4 border ${
-                    allRequirementsMet
-                        ? 'bg-green-50 border-green-200'
-                        : 'bg-blue-50 border-blue-200'
-                }`}>
+                <div
+                    className={`rounded-lg border p-4 ${
+                        allRequirementsMet
+                            ? 'border-green-200 bg-green-50'
+                            : 'border-blue-200 bg-blue-50'
+                    }`}
+                >
                     {allRequirementsMet ? (
                         <div className="flex items-start gap-3">
-                            <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
                             <div>
                                 <p className="text-sm font-medium text-green-900">
                                     Ready to go live!
                                 </p>
-                                <p className="text-xs text-green-700 mt-1">
-                                    All requirements are met. Click the button below to take your app live.
+                                <p className="mt-1 text-xs text-green-700">
+                                    All requirements are met. Click the button
+                                    below to take your app live.
                                 </p>
                             </div>
                         </div>
                     ) : (
                         <div className="flex items-start gap-3">
-                            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
                             <div>
                                 <p className="text-sm font-medium text-blue-900">
-                                    {requirements.filter(r => !r.met).length} requirement{
-                                        requirements.filter(r => !r.met).length !== 1 ? 's' : ''
-                                    } remaining
+                                    {requirements.filter((r) => !r.met).length}{' '}
+                                    requirement
+                                    {requirements.filter((r) => !r.met)
+                                        .length !== 1
+                                        ? 's'
+                                        : ''}{' '}
+                                    remaining
                                 </p>
-                                <p className="text-xs text-blue-700 mt-1">
-                                    Complete all items to unlock the "Go Live" button.
+                                <p className="mt-1 text-xs text-blue-700">
+                                    Complete all items to unlock the "Go Live"
+                                    button.
                                 </p>
                             </div>
                         </div>
@@ -186,14 +207,14 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
                 >
                     {isLoading ? (
                         <>
-                            <span className="animate-spin mr-2">⚙️</span>
+                            <span className="mr-2 animate-spin">⚙️</span>
                             Processing...
                         </>
                     ) : allRequirementsMet ? (
                         '🚀 Go Live Now'
                     ) : (
                         <>
-                            <Lock className="h-4 w-4 mr-2" />
+                            <Lock className="mr-2 h-4 w-4" />
                             Complete Changes to Go Live
                         </>
                     )}
@@ -203,8 +224,8 @@ const PreLaunchChecklist: React.FC<PreLaunchChecklistProps> = ({
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Going Live</AlertTitle>
                     <AlertDescription>
-                        Once you go live, your passes will be distributed to all users. Make sure
-                        everything has been thoroughly tested.
+                        Once you go live, your passes will be distributed to all
+                        users. Make sure everything has been thoroughly tested.
                     </AlertDescription>
                 </Alert>
             </div>

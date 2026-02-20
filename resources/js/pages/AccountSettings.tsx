@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import InputError from '@/components/input-error';
-import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import AppLayout from '@/layouts/app-layout';
 import TierBadge from '@/components/tier-badge';
 import TierRoadmap from '@/components/tier-roadmap';
 import TierProgressionCard from '@/components/tier-progression-card';
@@ -79,7 +79,7 @@ interface PageProps {
 
 const getDaysElapsed = (date: string) => {
     const days = Math.floor(
-        (Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24)
+        (Date.now() - new Date(date).getTime()) / (1000 * 60 * 60 * 24),
     );
     if (days === 0) return 'Today';
     if (days === 1) return 'Yesterday';
@@ -108,7 +108,9 @@ export default function AccountSettings({
     const [goLiveError, setGoLiveError] = useState('');
     const [goLiveSuccess, setGoLiveSuccess] = useState(false);
 
-    const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleEditChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+    ) => {
         const { name, value } = e.target;
         setEditData((prev) => ({
             ...prev,
@@ -127,7 +129,7 @@ export default function AccountSettings({
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: JSON.stringify(editData),
             });
@@ -160,14 +162,16 @@ export default function AccountSettings({
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
             });
 
             const data = await response.json();
 
             if (!response.ok) {
-                setRequestError(data.message || 'Failed to request production tier');
+                setRequestError(
+                    data.message || 'Failed to request production tier',
+                );
             } else {
                 setRequestError('');
                 setTimeout(() => {
@@ -193,7 +197,7 @@ export default function AccountSettings({
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: JSON.stringify({ tested_on_device: testedOnDevice }),
             });
@@ -201,7 +205,10 @@ export default function AccountSettings({
             const validateData = await validateResponse.json();
 
             if (!validateResponse.ok) {
-                setGoLiveError(validateData.message || 'Pre-launch checklist validation failed');
+                setGoLiveError(
+                    validateData.message ||
+                        'Pre-launch checklist validation failed',
+                );
                 return;
             }
 
@@ -209,7 +216,7 @@ export default function AccountSettings({
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
             });
 
@@ -240,13 +247,13 @@ export default function AccountSettings({
     const userProfileComplete = Boolean(user.name) && Boolean(user.industry);
 
     return (
-        <AuthenticatedLayout>
+        <AppLayout>
             <Head title="Account Settings" />
 
             {/* Onboarding Wizard */}
             <OnboardingWizard steps={onboardingSteps} />
 
-            <div className="mx-auto max-w-4xl space-y-8 py-10 px-4">
+            <div className="mx-auto max-w-4xl space-y-8 px-4 py-10">
                 {/* Page Header */}
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold text-foreground">
@@ -260,14 +267,14 @@ export default function AccountSettings({
                 {/* Status Banner */}
                 {isPending && (
                     <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-                        <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-yellow-600" />
                         <div>
                             <h3 className="font-semibold text-yellow-900">
                                 Pending Approval
                             </h3>
                             <p className="text-sm text-yellow-800">
-                                Your account is pending approval. We'll email you within 24
-                                hours.
+                                Your account is pending approval. We'll email
+                                you within 24 hours.
                             </p>
                         </div>
                     </div>
@@ -275,14 +282,14 @@ export default function AccountSettings({
 
                 {isRejected && (
                     <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4">
-                        <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
                         <div>
                             <h3 className="font-semibold text-red-900">
                                 Application Declined
                             </h3>
                             <p className="text-sm text-red-800">
-                                Your account application was declined. Please contact support
-                                for more information.
+                                Your account application was declined. Please
+                                contact support for more information.
                             </p>
                         </div>
                     </div>
@@ -290,14 +297,14 @@ export default function AccountSettings({
 
                 {isApproved && (
                     <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
-                        <CheckCircle className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
                         <div>
                             <h3 className="font-semibold text-green-900">
                                 Account Approved!
                             </h3>
                             <p className="text-sm text-green-800">
-                                Your account has been approved. Start setting up your wallet
-                                credentials.
+                                Your account has been approved. Start setting up
+                                your wallet credentials.
                             </p>
                         </div>
                     </div>
@@ -352,14 +359,20 @@ export default function AccountSettings({
                                                 </Label>
                                                 <p className="text-lg font-semibold text-foreground">
                                                     {user.industry
-                                                        ? getIndustryLabel(user.industry)
+                                                        ? getIndustryLabel(
+                                                              user.industry,
+                                                          )
                                                         : 'Not specified'}
                                                 </p>
                                             </div>
                                         </div>
 
                                         <div className="border-t pt-4">
-                                            <Button onClick={() => setIsEditing(true)}>
+                                            <Button
+                                                onClick={() =>
+                                                    setIsEditing(true)
+                                                }
+                                            >
                                                 Edit Account
                                             </Button>
                                         </div>
@@ -376,7 +389,9 @@ export default function AccountSettings({
                                                         id="name"
                                                         name="name"
                                                         value={editData.name}
-                                                        onChange={handleEditChange}
+                                                        onChange={
+                                                            handleEditChange
+                                                        }
                                                         disabled={isSaving}
                                                     />
                                                 </div>
@@ -387,28 +402,40 @@ export default function AccountSettings({
                                                     <select
                                                         id="industry"
                                                         name="industry"
-                                                        value={editData.industry}
-                                                        onChange={handleEditChange}
+                                                        value={
+                                                            editData.industry
+                                                        }
+                                                        onChange={
+                                                            handleEditChange
+                                                        }
                                                         disabled={isSaving}
                                                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                                                     >
                                                         <option value="">
                                                             Select an industry
                                                         </option>
-                                                        {INDUSTRY_OPTIONS.map((opt) => (
-                                                            <option
-                                                                key={opt.value}
-                                                                value={opt.value}
-                                                            >
-                                                                {opt.label}
-                                                            </option>
-                                                        ))}
+                                                        {INDUSTRY_OPTIONS.map(
+                                                            (opt) => (
+                                                                <option
+                                                                    key={
+                                                                        opt.value
+                                                                    }
+                                                                    value={
+                                                                        opt.value
+                                                                    }
+                                                                >
+                                                                    {opt.label}
+                                                                </option>
+                                                            ),
+                                                        )}
                                                     </select>
                                                 </div>
                                             </div>
 
                                             {saveError && (
-                                                <InputError message={saveError} />
+                                                <InputError
+                                                    message={saveError}
+                                                />
                                             )}
 
                                             {saveSuccess && (
@@ -425,20 +452,24 @@ export default function AccountSettings({
                                                     {isSaving && (
                                                         <Loader className="mr-2 h-4 w-4 animate-spin" />
                                                     )}
-                                                    {isSaving ? 'Saving...' : 'Save'}
+                                                    {isSaving
+                                                        ? 'Saving...'
+                                                        : 'Save'}
                                                 </Button>
                                                 <Button
                                                     onClick={() => {
                                                         setIsEditing(false);
                                                         setEditData({
                                                             name: user.name,
-                                                            industry: user.industry || '',
+                                                            industry:
+                                                                user.industry ||
+                                                                '',
                                                         });
                                                     }}
                                                     variant="outline"
                                                     disabled={isSaving}
                                                 >
-                                                   Cancel
+                                                    Cancel
                                                 </Button>
                                             </div>
                                         </div>
@@ -451,7 +482,10 @@ export default function AccountSettings({
                     {/* Tier Progress Tab */}
                     <TabsContent value="tier" className="space-y-4">
                         <Card className="p-6">
-                            <TierBadge currentTier={user.tier} compact={false} />
+                            <TierBadge
+                                currentTier={user.tier}
+                                compact={false}
+                            />
                             <div className="mt-6">
                                 <TierRoadmap
                                     currentTier={user.tier}
@@ -480,9 +514,7 @@ export default function AccountSettings({
                             isLoading={isGoingLive}
                         />
 
-                        {goLiveError && (
-                            <InputError message={goLiveError} />
-                        )}
+                        {goLiveError && <InputError message={goLiveError} />}
                         {goLiveSuccess && (
                             <div className="rounded-md bg-green-50 p-3 text-sm text-green-800">
                                 Your account is now live! Redirecting...
@@ -496,7 +528,8 @@ export default function AccountSettings({
                             <AppleCertificateList
                                 certificates={appleCertificates}
                                 onAddCertificate={() => {
-                                    window.location.href = '/settings/certificates/apple';
+                                    window.location.href =
+                                        '/settings/certificates/apple';
                                 }}
                                 onRenew={(id) => {
                                     console.log('Renew certificate:', id);
@@ -514,7 +547,8 @@ export default function AccountSettings({
                             <GoogleCredentialList
                                 credentials={googleCredentials}
                                 onAddCredential={() => {
-                                    window.location.href = '/settings/certificates/google';
+                                    window.location.href =
+                                        '/settings/certificates/google';
                                 }}
                                 onRotate={(id) => {
                                     console.log('Rotate credential:', id);
@@ -529,7 +563,7 @@ export default function AccountSettings({
                     {/* Certificates Tab (Summary) */}
                     <TabsContent value="certificates" className="space-y-4">
                         <Card className="p-6">
-                            <h3 className="text-lg font-semibold text-foreground mb-4">
+                            <h3 className="mb-4 text-lg font-semibold text-foreground">
                                 Certificate Status
                             </h3>
                             <div className="space-y-3">
@@ -539,13 +573,15 @@ export default function AccountSettings({
                                             Apple Certificates
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {appleCertificates.length} certificate(s) uploaded
+                                            {appleCertificates.length}{' '}
+                                            certificate(s) uploaded
                                         </p>
                                     </div>
                                     <Button
                                         variant="outline"
                                         onClick={() => {
-                                            window.location.href = '/settings/certificates/apple';
+                                            window.location.href =
+                                                '/settings/certificates/apple';
                                         }}
                                     >
                                         Manage
@@ -557,13 +593,15 @@ export default function AccountSettings({
                                             Google Credentials
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {googleCredentials.length} credential(s) uploaded
+                                            {googleCredentials.length}{' '}
+                                            credential(s) uploaded
                                         </p>
                                     </div>
                                     <Button
                                         variant="outline"
                                         onClick={() => {
-                                            window.location.href = '/settings/certificates/google';
+                                            window.location.href =
+                                                '/settings/certificates/google';
                                         }}
                                     >
                                         Manage
@@ -574,6 +612,6 @@ export default function AccountSettings({
                     </TabsContent>
                 </Tabs>
             </div>
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }

@@ -71,7 +71,7 @@ class DisableEnableLinkTest extends TestCase
      */
     public function test_authorized_user_can_update_link_status()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
         $link = PassDistributionLink::factory()->for($pass)->create();
 

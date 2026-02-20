@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { AlertCircle, CheckCircle, Download, Upload, ExternalLink, Loader } from 'lucide-react';
+import {
+    AlertCircle,
+    CheckCircle,
+    Download,
+    Upload,
+    ExternalLink,
+    Loader,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import InputError from '@/components/input-error';
-import AuthenticatedLayout from '@/layouts/authenticated-layout';
+import AppLayout from '@/layouts/app-layout';
 
 export default function SetupApple() {
     const [step, setStep] = useState<'csr' | 'upload'>('csr');
@@ -27,7 +34,7 @@ export default function SetupApple() {
             const response = await fetch('/api/certificates/apple/csr', {
                 method: 'GET',
                 headers: {
-                    'Accept': 'application/octet-stream',
+                    Accept: 'application/octet-stream',
                     'X-Requested-With': 'XMLHttpRequest',
                 },
             });
@@ -78,7 +85,7 @@ export default function SetupApple() {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: formData,
             });
@@ -89,7 +96,9 @@ export default function SetupApple() {
                 if (Array.isArray(data.errors)) {
                     setUploadError(data.errors.join(', '));
                 } else {
-                    setUploadError(data.message || 'Failed to upload certificate');
+                    setUploadError(
+                        data.message || 'Failed to upload certificate',
+                    );
                 }
             } else {
                 setUploadSuccess(true);
@@ -106,17 +115,18 @@ export default function SetupApple() {
     };
 
     return (
-        <AuthenticatedLayout>
+        <AppLayout>
             <Head title="Apple Wallet Setup" />
 
-            <div className="mx-auto max-w-2xl space-y-6 py-10 px-4">
+            <div className="mx-auto max-w-2xl space-y-6 px-4 py-10">
                 {/* Page Header */}
                 <div className="space-y-2">
                     <h1 className="text-3xl font-bold text-foreground">
                         Apple Wallet Setup
                     </h1>
                     <p className="text-muted-foreground">
-                        Generate a Certificate Signing Request (CSR) and upload your Apple Wallet certificate
+                        Generate a Certificate Signing Request (CSR) and upload
+                        your Apple Wallet certificate
                     </p>
                 </div>
 
@@ -126,8 +136,8 @@ export default function SetupApple() {
                         <div
                             className={`flex items-center gap-3 rounded-lg px-4 py-3 ${
                                 step === 'csr'
-                                    ? 'bg-blue-50 border border-blue-200'
-                                    : 'bg-gray-50 border border-gray-200'
+                                    ? 'border border-blue-200 bg-blue-50'
+                                    : 'border border-gray-200 bg-gray-50'
                             }`}
                         >
                             <div
@@ -140,7 +150,9 @@ export default function SetupApple() {
                                 1
                             </div>
                             <div>
-                                <p className="font-medium text-foreground">Generate CSR</p>
+                                <p className="font-medium text-foreground">
+                                    Generate CSR
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                     Create certificate request
                                 </p>
@@ -152,8 +164,8 @@ export default function SetupApple() {
                         <div
                             className={`flex items-center gap-3 rounded-lg px-4 py-3 ${
                                 step === 'upload'
-                                    ? 'bg-blue-50 border border-blue-200'
-                                    : 'bg-gray-50 border border-gray-200'
+                                    ? 'border border-blue-200 bg-blue-50'
+                                    : 'border border-gray-200 bg-gray-50'
                             }`}
                         >
                             <div
@@ -165,10 +177,16 @@ export default function SetupApple() {
                                           : 'bg-gray-300 text-gray-600'
                                 }`}
                             >
-                                {uploadSuccess ? <CheckCircle className="h-4 w-4" /> : '2'}
+                                {uploadSuccess ? (
+                                    <CheckCircle className="h-4 w-4" />
+                                ) : (
+                                    '2'
+                                )}
                             </div>
                             <div>
-                                <p className="font-medium text-foreground">Upload Certificate</p>
+                                <p className="font-medium text-foreground">
+                                    Upload Certificate
+                                </p>
                                 <p className="text-xs text-muted-foreground">
                                     Submit Apple certificate
                                 </p>
@@ -183,16 +201,25 @@ export default function SetupApple() {
                         <div className="space-y-4">
                             <Alert>
                                 <AlertCircle className="h-4 w-4" />
-                                <AlertTitle>Required: Apple Developer Account</AlertTitle>
+                                <AlertTitle>
+                                    Required: Apple Developer Account
+                                </AlertTitle>
                                 <AlertDescription>
-                                    You'll need an Apple Developer Program membership ($99/year) to complete this process.
+                                    You'll need an Apple Developer Program
+                                    membership ($99/year) to complete this
+                                    process.
                                 </AlertDescription>
                             </Alert>
 
                             <div className="space-y-3">
-                                <h3 className="font-semibold text-foreground">What is a CSR?</h3>
+                                <h3 className="font-semibold text-foreground">
+                                    What is a CSR?
+                                </h3>
                                 <p className="text-sm text-muted-foreground">
-                                    A Certificate Signing Request (CSR) is a file you send to Apple to prove your identity. Apple will sign it and return a certificate that you upload here.
+                                    A Certificate Signing Request (CSR) is a
+                                    file you send to Apple to prove your
+                                    identity. Apple will sign it and return a
+                                    certificate that you upload here.
                                 </p>
                             </div>
 
@@ -202,14 +229,23 @@ export default function SetupApple() {
                                 size="lg"
                                 className="w-full"
                             >
-                                {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                                {isLoading ? 'Generating...' : 'Generate & Download CSR'}
+                                {isLoading && (
+                                    <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                )}
+                                {isLoading
+                                    ? 'Generating...'
+                                    : 'Generate & Download CSR'}
                             </Button>
 
-                            <div className="rounded-lg bg-blue-50 p-4 space-y-3">
-                                <h3 className="font-semibold text-blue-900">Next Steps</h3>
-                                <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
-                                    <li>Download the CSR file (you'll get it automatically above)</li>
+                            <div className="space-y-3 rounded-lg bg-blue-50 p-4">
+                                <h3 className="font-semibold text-blue-900">
+                                    Next Steps
+                                </h3>
+                                <ol className="list-inside list-decimal space-y-2 text-sm text-blue-800">
+                                    <li>
+                                        Download the CSR file (you'll get it
+                                        automatically above)
+                                    </li>
                                     <li>
                                         <a
                                             href="https://developer.apple.com/account"
@@ -221,10 +257,19 @@ export default function SetupApple() {
                                             <ExternalLink className="h-3 w-3" />
                                         </a>
                                     </li>
-                                    <li>Go to Certificates, IDs & Profiles → Certificates</li>
-                                    <li>Click "+" and select "Apple Wallet Pass Certificate"</li>
+                                    <li>
+                                        Go to Certificates, IDs & Profiles →
+                                        Certificates
+                                    </li>
+                                    <li>
+                                        Click "+" and select "Apple Wallet Pass
+                                        Certificate"
+                                    </li>
                                     <li>Upload your CSR file</li>
-                                    <li>Download the signed certificate (.cer file)</li>
+                                    <li>
+                                        Download the signed certificate (.cer
+                                        file)
+                                    </li>
                                     <li>Come back here and upload it</li>
                                 </ol>
                             </div>
@@ -237,15 +282,17 @@ export default function SetupApple() {
                     <Card className="p-6">
                         {uploadSuccess && uploadedCert ? (
                             <div className="space-y-4">
-                                <div className="rounded-lg bg-green-50 p-4 border border-green-200">
+                                <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                                     <div className="flex items-start gap-3">
-                                        <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
+                                        <CheckCircle className="mt-0.5 h-6 w-6 flex-shrink-0 text-green-600" />
                                         <div>
                                             <h3 className="font-semibold text-green-900">
-                                                Certificate Uploaded Successfully! 🎉
+                                                Certificate Uploaded
+                                                Successfully! 🎉
                                             </h3>
-                                            <p className="text-sm text-green-700 mt-1">
-                                                Your Apple Wallet certificate is now active.
+                                            <p className="mt-1 text-sm text-green-700">
+                                                Your Apple Wallet certificate is
+                                                now active.
                                             </p>
                                         </div>
                                     </div>
@@ -253,33 +300,54 @@ export default function SetupApple() {
 
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     <div className="rounded border p-3">
-                                        <p className="text-xs text-muted-foreground">Fingerprint</p>
-                                        <p className="font-mono text-xs mt-1">
-                                            {uploadedCert.fingerprint.slice(0, 20)}...
+                                        <p className="text-xs text-muted-foreground">
+                                            Fingerprint
+                                        </p>
+                                        <p className="mt-1 font-mono text-xs">
+                                            {uploadedCert.fingerprint.slice(
+                                                0,
+                                                20,
+                                            )}
+                                            ...
                                         </p>
                                     </div>
                                     <div className="rounded border p-3">
-                                        <p className="text-xs text-muted-foreground">Valid From</p>
-                                        <p className="text-sm font-medium mt-1">
-                                            {new Date(uploadedCert.valid_from).toLocaleDateString()}
+                                        <p className="text-xs text-muted-foreground">
+                                            Valid From
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium">
+                                            {new Date(
+                                                uploadedCert.valid_from,
+                                            ).toLocaleDateString()}
                                         </p>
                                     </div>
                                     <div className="rounded border p-3">
-                                        <p className="text-xs text-muted-foreground">Expires</p>
-                                        <p className="text-sm font-medium mt-1">
-                                            {new Date(uploadedCert.expiry_date).toLocaleDateString()}
+                                        <p className="text-xs text-muted-foreground">
+                                            Expires
+                                        </p>
+                                        <p className="mt-1 text-sm font-medium">
+                                            {new Date(
+                                                uploadedCert.expiry_date,
+                                            ).toLocaleDateString()}
                                         </p>
                                     </div>
                                     <div className="rounded border p-3">
-                                        <p className="text-xs text-muted-foreground">Days Until Expiry</p>
-                                        <p className={`text-sm font-medium mt-1 ${
-                                            uploadedCert.days_until_expiry > 30
-                                                ? 'text-green-600'
-                                                : uploadedCert.days_until_expiry > 7
-                                                  ? 'text-yellow-600'
-                                                  : 'text-red-600'
-                                        }`}>
-                                            {uploadedCert.days_until_expiry} days
+                                        <p className="text-xs text-muted-foreground">
+                                            Days Until Expiry
+                                        </p>
+                                        <p
+                                            className={`mt-1 text-sm font-medium ${
+                                                uploadedCert.days_until_expiry >
+                                                30
+                                                    ? 'text-green-600'
+                                                    : uploadedCert.days_until_expiry >
+                                                        7
+                                                      ? 'text-yellow-600'
+                                                      : 'text-red-600'
+                                            }`}
+                                        >
+                                            {uploadedCert.days_until_expiry}{' '}
+                                            days
                                         </p>
                                     </div>
                                 </div>
@@ -305,29 +373,31 @@ export default function SetupApple() {
                                 </div>
                             </div>
                         ) : (
-                            <form onSubmit={handleUploadCertificate} className="space-y-4">
+                            <form
+                                onSubmit={handleUploadCertificate}
+                                className="space-y-4"
+                            >
                                 {/* File Upload */}
                                 <div>
-                                    <label className="block text-sm font-medium text-foreground mb-2">
+                                    <label className="mb-2 block text-sm font-medium text-foreground">
                                         Upload Certificate (.cer file)
                                     </label>
                                     <div className="relative">
                                         <input
                                             type="file"
                                             accept=".cer,.pem"
-                                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                                            onChange={(e) =>
+                                                setSelectedFile(
+                                                    e.target.files?.[0] || null,
+                                                )
+                                            }
                                             disabled={isLoading}
                                             required
-                                            className="block w-full text-sm text-gray-500
-                                              file:mr-4 file:py-2 file:px-4
-                                              file:rounded-full file:border-0
-                                              file:text-sm file:font-semibold
-                                              file:bg-blue-50 file:text-blue-700
-                                              hover:file:bg-blue-100"
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
                                         />
                                     </div>
                                     {selectedFile && (
-                                        <p className="text-xs text-green-600 mt-1">
+                                        <p className="mt-1 text-xs text-green-600">
                                             ✓ {selectedFile.name}
                                         </p>
                                     )}
@@ -342,14 +412,18 @@ export default function SetupApple() {
                                     disabled={isLoading || !selectedFile}
                                     className="w-full"
                                 >
-                                    {isLoading && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                                    {isLoading ? 'Uploading...' : 'Upload Certificate'}
+                                    {isLoading && (
+                                        <Loader className="mr-2 h-4 w-4 animate-spin" />
+                                    )}
+                                    {isLoading
+                                        ? 'Uploading...'
+                                        : 'Upload Certificate'}
                                 </Button>
                             </form>
                         )}
                     </Card>
                 )}
             </div>
-        </AuthenticatedLayout>
+        </AppLayout>
     );
 }

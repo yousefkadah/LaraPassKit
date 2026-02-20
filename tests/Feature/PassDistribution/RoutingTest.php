@@ -30,7 +30,7 @@ class RoutingTest extends TestCase
      */
     public function test_distribution_links_index_route_resolves()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
 
         $response = $this->actingAs($user)->get(
@@ -44,7 +44,7 @@ class RoutingTest extends TestCase
      */
     public function test_distribution_links_store_route_resolves()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
 
         $response = $this->actingAs($user)->post(
@@ -58,7 +58,7 @@ class RoutingTest extends TestCase
      */
     public function test_distribution_links_update_route_resolves()
     {
-        $user = User::factory()->create();
+        $user = User::factory()->forRegionUS()->create();
         $pass = Pass::factory()->for($user)->create();
         $link = PassDistributionLink::factory()->for($pass)->create();
 

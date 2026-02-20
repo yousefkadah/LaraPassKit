@@ -140,20 +140,20 @@
 
 **Purpose**: Documentation, testing, and deployment readiness
 
-- [ ] T048 Run full feature test suite in terminal: `php artisan test tests/Feature/PassDistribution/` and verify all tests pass (GATE: 100% pass rate required)
-- [ ] T049 [P] Format PHP code with Pint: `./vendor/bin/pint app/Http/Controllers/PassDistributionController.php app/Models/PassDistributionLink.php app/Services/PassDistributionLinkService.php`
-- [ ] T050 [P] Format React/TypeScript code with Prettier: `npm run format resources/js/pages/PassLink.tsx resources/js/pages/Passes/DistributionPanel.tsx resources/js/components/QRCodeDisplay.tsx`
-- [ ] T051 Create migration checklist document in `specs/001-pass-distribution/DEPLOYMENT_CHECKLIST.md` listing pre-deployment verification steps
-- [ ] T052 Create user documentation in `specs/001-pass-distribution/USER_GUIDE.md` explaining how to use pass distribution links (issuer perspective)
-- [ ] T053 Test database migration in fresh database: `php artisan migrate:fresh && php artisan migrate` and verify table structure matches schema
-- [ ] T054 [P] Test factory-generated data: `php artisan tinker` and create sample links via PassDistributionLinkFactory
-- [ ] T055 Test routes in browser: verify /p/{slug} accessible without auth, /dashboard/passes/{pass}/distribution-links requires auth
+- [x] T048 Run full feature test suite in terminal: `php artisan test tests/Feature/PassDistribution/` and verify all tests pass (GATE: 100% pass rate required)
+- [x] T049 [P] Format PHP code with Pint: `./vendor/bin/pint app/Http/Controllers/PassDistributionController.php app/Models/PassDistributionLink.php app/Services/PassDistributionLinkService.php`
+- [x] T050 [P] Format React/TypeScript code with Prettier: `npm run format resources/js/pages/PassLink.tsx resources/js/pages/Passes/DistributionPanel.tsx resources/js/components/QRCodeDisplay.tsx`
+- [x] T051 Create migration checklist document in `specs/001-pass-distribution/DEPLOYMENT_CHECKLIST.md` listing pre-deployment verification steps
+- [x] T052 Create user documentation in `specs/001-pass-distribution/USER_GUIDE.md` explaining how to use pass distribution links (issuer perspective)
+- [x] T053 Test database migration in fresh database: `php artisan migrate:fresh && php artisan migrate` and verify table structure matches schema
+- [x] T054 [P] Test factory-generated data: `php artisan tinker` and create sample links via PassDistributionLinkFactory
+- [x] T055 Test routes in browser: verify /p/{slug} accessible without auth, /dashboard/passes/{pass}/distribution-links requires auth
 - [ ] T056 [P] Verify access tracking: open pass link 3 times, check last_accessed_at and accessed_count updated in database
 - [ ] T057 Verify device detection: test from iOS Safari, Chrome Android, Desktop Chrome and confirm correct add-to-wallet action shown
 - [ ] T058 [P] Verify QR code: scan generated QR code and confirm lands on correct pass link
 - [ ] T059 Verify expiry messaging: set pass status to expired, open link, confirm message displayed
 - [ ] T060 Verify link control: disable link, confirm 403 response; re-enable, confirm link works
-- [ ] T061 Build frontend: `npm run build` and verify no errors or warnings
+- [x] T061 Build frontend: `npm run build` and verify no errors or warnings
 - [ ] T062 [P] Commit feature branch: `git add -A && git commit -m "feat: pass distribution system (US1-US3)"`
 - [ ] T063 [P] Create pull request from `001-pass-distribution` to `main` with description referencing spec and linking to test results
 - [ ] T064 Code review checklist: Constitution compliance, test coverage, type safety, no N+1 queries, proper authorization scoping

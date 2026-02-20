@@ -55,7 +55,9 @@ export default function Signup() {
     });
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
-    const [approvalStatus, setApprovalStatus] = useState<'pending' | 'approved' | null>(null);
+    const [approvalStatus, setApprovalStatus] = useState<
+        'pending' | 'approved' | null
+    >(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -112,7 +114,7 @@ export default function Signup() {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: JSON.stringify(formData),
             });
@@ -126,7 +128,8 @@ export default function Signup() {
                     setErrors(errorData.errors || {});
                 } else {
                     setErrors({
-                        submit: data.message || 'An error occurred during signup.',
+                        submit:
+                            data.message || 'An error occurred during signup.',
                     });
                 }
             } else {
@@ -135,11 +138,11 @@ export default function Signup() {
                 setApprovalStatus(data.user.approval_status);
                 if (data.user.approval_status === 'approved') {
                     setSuccessMessage(
-                        "Account created! You're all set. Log in to get started."
+                        "Account created! You're all set. Log in to get started.",
                     );
                 } else {
                     setSuccessMessage(
-                        "Thanks for signing up! Your account is pending approval. We'll email you within 24 hours."
+                        "Thanks for signing up! Your account is pending approval. We'll email you within 24 hours.",
                     );
                 }
                 // Redirect to login after 2 seconds
@@ -159,10 +162,7 @@ export default function Signup() {
 
     if (submitSuccess) {
         return (
-            <AuthLayout
-                title="Signup Successful"
-                description={successMessage}
-            >
+            <AuthLayout title="Signup Successful" description={successMessage}>
                 <Head title="Signup Successful" />
                 <div className="flex flex-col items-center gap-4">
                     <div className="text-center">
@@ -189,10 +189,7 @@ export default function Signup() {
             description="Sign up to start creating passes"
         >
             <Head title="Sign Up" />
-            <form
-                onSubmit={handleSubmit}
-                className="flex flex-col gap-6"
-            >
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                 <div className="grid gap-6">
                     {/* Name Field */}
                     <div className="grid gap-2">
@@ -210,10 +207,7 @@ export default function Signup() {
                             onChange={handleInputChange}
                             disabled={processing}
                         />
-                        <InputError
-                            message={errors.name}
-                            className="mt-2"
-                        />
+                        <InputError message={errors.name} className="mt-2" />
                     </div>
 
                     {/* Email Field */}
@@ -247,7 +241,9 @@ export default function Signup() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="EU">Europe (EU)</SelectItem>
-                                <SelectItem value="US">United States (US)</SelectItem>
+                                <SelectItem value="US">
+                                    United States (US)
+                                </SelectItem>
                             </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
@@ -278,7 +274,10 @@ export default function Signup() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <InputError message={errors.industry} className="mt-2" />
+                        <InputError
+                            message={errors.industry}
+                            className="mt-2"
+                        />
                     </div>
 
                     {/* Password Field */}
@@ -299,7 +298,10 @@ export default function Signup() {
                         <p className="text-xs text-muted-foreground">
                             Must contain letters, numbers, and symbols
                         </p>
-                        <InputError message={errors.password} className="mt-2" />
+                        <InputError
+                            message={errors.password}
+                            className="mt-2"
+                        />
                     </div>
 
                     {/* Password Confirmation Field */}
@@ -343,17 +345,14 @@ export default function Signup() {
                         />
                         <Label
                             htmlFor="agree_terms"
-                            className="text-sm cursor-pointer leading-relaxed"
+                            className="cursor-pointer text-sm leading-relaxed"
                         >
                             I agree to the{' '}
                             <TextLink href="#">Terms of Service</TextLink> and{' '}
                             <TextLink href="#">Privacy Policy</TextLink>
                         </Label>
                     </div>
-                    <InputError
-                        message={errors.agree_terms}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.agree_terms} className="mt-2" />
 
                     {/* Submit Button */}
                     <Button

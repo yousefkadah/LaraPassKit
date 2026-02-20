@@ -48,7 +48,10 @@ const STEP_ORDER = [
     'first_pass',
 ] as const;
 
-export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardProps) {
+export default function OnboardingWizard({
+    steps,
+    onDismiss,
+}: OnboardingWizardProps) {
     const [isVisible, setIsVisible] = useState(true);
     const [isMinimized, setIsMinimized] = useState(false);
     const [isCompleting, setIsCompleting] = useState(false);
@@ -88,7 +91,7 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
 
     if (isMinimized) {
         return (
-            <div className="fixed bottom-4 right-4 z-40">
+            <div className="fixed right-4 bottom-4 z-40">
                 <Button
                     onClick={() => setIsMinimized(false)}
                     variant="outline"
@@ -103,7 +106,7 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
     }
 
     return (
-        <div className="fixed bottom-4 right-4 z-40 w-96 rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="fixed right-4 bottom-4 z-40 w-96 rounded-lg border border-gray-200 bg-white shadow-lg">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -144,7 +147,9 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
                     <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                         <div
                             className="h-full bg-blue-500 transition-all duration-300"
-                            style={{ width: `${(completedCount / totalSteps) * 100}%` }}
+                            style={{
+                                width: `${(completedCount / totalSteps) * 100}%`,
+                            }}
                         />
                     </div>
                 </div>
@@ -172,7 +177,11 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
                                             : 'bg-gray-300 text-gray-600'
                                     }`}
                                 >
-                                    {isCompleted ? <Check className="h-3 w-3" /> : '·'}
+                                    {isCompleted ? (
+                                        <Check className="h-3 w-3" />
+                                    ) : (
+                                        '·'
+                                    )}
                                 </div>
                                 <div className="flex-1">
                                     <p
@@ -197,7 +206,8 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
                                 {!isCompleted && definition.link && (
                                     <Button
                                         onClick={() => {
-                                            window.location.href = definition.link;
+                                            window.location.href =
+                                                definition.link;
                                         }}
                                         variant="ghost"
                                         size="sm"
@@ -215,11 +225,11 @@ export default function OnboardingWizard({ steps, onDismiss }: OnboardingWizardP
                 {allComplete && (
                     <div className="rounded-lg bg-green-50 p-3 text-center text-sm text-green-900">
                         <p className="font-semibold">🎉 Setup Complete!</p>
-                        <p className="text-xs text-green-700 mt-1">
+                        <p className="mt-1 text-xs text-green-700">
                             You're ready to start creating passes.
                         </p>
                         {isCompleting && (
-                            <p className="text-xs text-green-700 mt-1">
+                            <p className="mt-1 text-xs text-green-700">
                                 Closing in a moment...
                             </p>
                         )}

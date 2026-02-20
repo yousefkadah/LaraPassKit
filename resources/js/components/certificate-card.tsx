@@ -28,7 +28,7 @@ export default function CertificateCard({
     const now = new Date();
     const expiry = new Date(expiryDate);
     const daysUntilExpiry = Math.ceil(
-        (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        (expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     let statusColor = 'bg-green-50 border-green-200';
@@ -61,13 +61,16 @@ export default function CertificateCard({
         <div className={`rounded-lg border p-4 ${statusColor}`}>
             <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-1">{statusIcon}</div>
+                    <div className="mt-1 flex-shrink-0">{statusIcon}</div>
                     <div>
                         <h3 className="font-semibold text-foreground capitalize">
-                            {type === 'apple' ? 'Apple Wallet' : 'Google Wallet'} Certificate
+                            {type === 'apple'
+                                ? 'Apple Wallet'
+                                : 'Google Wallet'}{' '}
+                            Certificate
                         </h3>
                         {type === 'apple' && fingerprint && (
-                            <p className="text-sm text-muted-foreground font-mono">
+                            <p className="font-mono text-sm text-muted-foreground">
                                 {fingerprint.slice(0, 16)}...
                             </p>
                         )}
@@ -83,13 +86,13 @@ export default function CertificateCard({
                         )}
                     </div>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
+                <div className="flex flex-shrink-0 gap-2">
                     {(daysUntilExpiry < 30 || daysUntilExpiry < 0) && (
                         <Button
                             onClick={onRenew}
                             size="sm"
                             variant="outline"
-                            className="text-yellow-700 border-yellow-200 hover:bg-yellow-100"
+                            className="border-yellow-200 text-yellow-700 hover:bg-yellow-100"
                         >
                             {daysUntilExpiry < 0 ? 'Replace' : 'Renew'}
                         </Button>
